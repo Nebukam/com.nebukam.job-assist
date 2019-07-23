@@ -13,5 +13,12 @@
     "name": "Timothe Lapetite",
     "email": "nebukam@gmail.com",
     "url": "https://github.com/Nebukam/com.nebukam.job-assist.git"
-  }
+  },
+  "samples": [
+    {
+      "displayName": "JobStacking",
+      "description": "Job Stacking example.",
+      "path": "Samples~/JobStacking"
+    }
+  ]
 }

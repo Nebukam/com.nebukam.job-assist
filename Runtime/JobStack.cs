@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
 using Unity.Jobs;
 
 namespace Nebukam.JobAssist
@@ -12,7 +8,9 @@ namespace Nebukam.JobAssist
 
         protected List<IJobHandler> m_stack = new List<IJobHandler>();
 
-        //Should be null
+        protected bool m_hasJobHandleDependency = false;
+        protected JobHandle m_jobHandleDependency = default(JobHandle);
+
         protected IJobHandler m_jobDependency = null;
         public IJobHandler jobDependency { get { return m_jobDependency; } }
 
@@ -28,12 +26,19 @@ namespace Nebukam.JobAssist
 
         protected bool m_scheduled = false;
         
+        /// <summary>
+        /// Schedule the job tasks.
+        /// </summary>
+        /// <param name="delta"></param>
+        /// <param name="dependsOn"></param>
+        /// <returns></returns>
         public JobHandle Schedule(float delta, IJobHandler dependsOn = null)
         {
 
             if (m_scheduled) { return m_currentHandle; }
             m_scheduled = true;
-            
+            m_hasJobHandleDependency = false;
+
             m_jobDependency = dependsOn;
 
             int count = m_stack.Count;
@@ -60,6 +65,52 @@ namespace Nebukam.JobAssist
 
         }
 
+        /// <summary>
+        /// Schedule this job stack, with a JobHandle dependency.
+        /// </summary>
+        /// <param name="delta"></param>
+        /// <param name="dependsOn"></param>
+        /// <returns></returns>
+        /// <remark>
+        /// This method is provided to support integration in regular Unity's Job System workflow
+        /// </remark>
+        public JobHandle Schedule(float delta, JobHandle dependsOn)
+        {
+
+            if (m_scheduled) { return m_currentHandle; }
+
+            m_scheduled = true;
+            m_hasJobHandleDependency = true;
+            m_jobDependency = null;
+            m_jobHandleDependency = dependsOn;
+
+            int count = m_stack.Count;
+            IJobHandler job, prevJob = null;
+
+            for (int i = 0; i < count; i++)
+            {
+                job = m_stack[i];
+
+                if (prevJob == null)
+                {
+                    m_currentHandle = job.Schedule(delta, m_jobHandleDependency);
+                }
+                else
+                {
+                    m_currentHandle = job.Schedule(delta, prevJob);
+                }
+
+                prevJob = job;
+
+            }
+
+            return m_currentHandle;
+
+        }
+
+        /// <summary>
+        /// Complete all the jobs in the stack.
+        /// </summary>
         public void Complete()
         {
             if (!m_scheduled) { return; }
