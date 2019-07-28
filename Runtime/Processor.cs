@@ -2,60 +2,58 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
+using System;
 using Unity.Collections;
 
 namespace Nebukam.JobAssist
 {
 
-    public interface IJobHandler
+    public interface IProcessor : IDisposable
     {
+        
+        IProcessorChain chain { get; set; }
+        int chainIndex { get; set; }
 
-        IJobHandler jobDependency { get; }
+        bool scheduled { get; }
+        bool completed { get; }
+
+        IProcessor procDependency { get; }
         JobHandle currentHandle { get; }
-
-        JobHandle Schedule(float delta, IJobHandler dependsOn = null);
+        
+        JobHandle Schedule(float delta, IProcessor dependsOn = null);
         JobHandle Schedule(float delta, JobHandle dependsOn);
+
         void Complete();
         
     }
 
 
-    public abstract class JobHandler<T> : IJobHandler
+    public abstract class Processor<T> : IProcessor
         where T : struct, IJob
     {
 
         protected bool m_hasJobHandleDependency = false;
         protected JobHandle m_jobHandleDependency = default(JobHandle);
 
-        protected IJobHandler m_jobDependency = null;
-        public IJobHandler jobDependency { get { return m_jobDependency; } }
+        public IProcessorChain m_chain = null;
+        public IProcessorChain chain { get { return m_chain; } set { m_chain = value; } }
+
+        public int chainIndex { get; set; } = -1;
+
+        protected IProcessor m_procDependency = null;
+        public IProcessor procDependency { get { return m_procDependency; } }
 
         protected T m_currentJob;
         protected JobHandle m_currentHandle;
         public JobHandle currentHandle { get { return m_currentHandle; } }
 
         protected bool m_scheduled = false;
-        protected bool m_completed = false;
-        public bool completed {
-            get {
-                if (m_scheduled)
-                {
-                    if (m_currentHandle.IsCompleted)
-                    {
-                        Complete();
-                        return m_completed;
-                    }
-                    else
-                    {
-                        return false;
-                    }
-                }
-                else
-                {
-                    return m_completed;
-                }
-            }
-        }
+        public bool scheduled { get { return m_scheduled; } }        
+        public bool completed { get { return m_scheduled ? m_currentHandle.IsCompleted : false; } }
+
+#if UNITY_EDITOR
+        protected bool m_disposed = false;
+#endif
 
         /// <summary>
         /// Schedule this job, with an optional dependency.
@@ -63,12 +61,19 @@ namespace Nebukam.JobAssist
         /// <param name="delta"></param>
         /// <param name="dependsOn"></param>
         /// <returns></returns>
-        public JobHandle Schedule(float delta, IJobHandler dependsOn = null)
+        public JobHandle Schedule(float delta, IProcessor dependsOn = null)
         {
+
+#if UNITY_EDITOR
+            if (m_disposed)
+            {
+                throw new Exception("Schedule() called on disposed JobHandler ( " + GetType().Name + " ).");
+            }
+#endif
+
             if (m_scheduled) { return m_currentHandle; }
 
             m_scheduled = true;
-            m_completed = false;
             m_hasJobHandleDependency = false;
 
             m_currentJob = new T();
@@ -76,12 +81,12 @@ namespace Nebukam.JobAssist
 
             if (dependsOn != null)
             {
-                m_jobDependency = dependsOn;
-                m_currentHandle = m_currentJob.Schedule(m_jobDependency.currentHandle);
+                m_procDependency = dependsOn;
+                m_currentHandle = m_currentJob.Schedule(m_procDependency.currentHandle);
             }
             else
             {
-                m_jobDependency = null;
+                m_procDependency = null;
                 m_currentHandle = m_currentJob.Schedule();
             }
 
@@ -99,12 +104,19 @@ namespace Nebukam.JobAssist
         /// </remark>
         public JobHandle Schedule(float delta, JobHandle dependsOn )
         {
+
+#if UNITY_EDITOR
+            if (m_disposed)
+            {
+                throw new Exception("Schedule() called on disposed JobHandler ( " + GetType().Name + " ).");
+            }
+#endif
+
             if (m_scheduled) { return m_currentHandle; }
 
             m_scheduled = true;
-            m_completed = false;
             m_hasJobHandleDependency = true;
-            m_jobDependency = null;
+            m_procDependency = null;
 
             m_currentJob = new T();
             Prepare(ref m_currentJob, delta);
@@ -121,16 +133,23 @@ namespace Nebukam.JobAssist
         /// </summary>
         public void Complete()
         {
+
+#if UNITY_EDITOR
+            if (m_disposed)
+            {
+                throw new Exception("Complete() called on disposed JobHandler ( "+GetType().Name+" ).");
+            }
+#endif
+
             if (!m_scheduled) { return; }
 
             if (m_hasJobHandleDependency)
                 m_jobHandleDependency.Complete();
 
-            m_jobDependency?.Complete();
+            m_procDependency?.Complete();
             m_currentHandle.Complete();
 
             m_scheduled = false;
-            m_completed = true;
 
             Apply(ref m_currentJob);
 
@@ -138,6 +157,23 @@ namespace Nebukam.JobAssist
 
         protected abstract void Apply(ref T job);
 
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposing) { return; }
+#if UNITY_EDITOR
+            m_disposed = true;
+#endif
+            m_procDependency = null;
+            m_scheduled = false;
+        }
+
+        public void Dispose()
+        {
+            // Dispose of unmanaged resources.
+            Dispose(true);
+            // Suppress finalization.
+            GC.SuppressFinalize(this);
+        }
 
     }
 

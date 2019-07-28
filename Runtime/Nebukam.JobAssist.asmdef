@@ -1,5 +1,6 @@
 {
     "name": "Nebukam.JobAssist",
+    "references": [],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],
