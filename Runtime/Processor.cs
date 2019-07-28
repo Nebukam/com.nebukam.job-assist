@@ -175,6 +175,29 @@ namespace Nebukam.JobAssist
             GC.SuppressFinalize(this);
         }
 
+        #region utils
+
+        protected bool TryGetFirstInChain<T>(out T processor)
+            where T : class, IProcessor
+        {
+            processor = null;
+            if (m_chain == null)
+            {
+                processor = m_procDependency as T;
+                return processor != null;
+            }
+
+            for(int i = chainIndex; i >= 0; i--)
+            {
+                processor = m_chain[i] as T;
+                if (processor != null) { return true; }
+            }
+
+            return false;
+        }
+
+        #endregion
+
     }
 
 }

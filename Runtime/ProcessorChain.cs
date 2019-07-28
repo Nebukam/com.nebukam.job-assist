@@ -7,7 +7,8 @@ namespace Nebukam.JobAssist
 
     public interface IProcessorChain : IProcessor
     {
-
+        int Count { get; }
+        IProcessor this[int i] { get; }
     }
     
     public class ProcessorChain : IProcessor, IProcessorChain
@@ -19,6 +20,10 @@ namespace Nebukam.JobAssist
         public int chainIndex { get; set; } = -1;
 
         protected List<IProcessor> m_stack = new List<IProcessor>();
+        public int Count { get { return m_stack.Count; } }
+
+        public IProcessor this[int i] { get { return m_stack[i]; } }
+             
 
         protected bool m_hasJobHandleDependency = false;
         protected JobHandle m_jobHandleDependency = default(JobHandle);
