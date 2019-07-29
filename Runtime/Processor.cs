@@ -163,6 +163,10 @@ namespace Nebukam.JobAssist
 #if UNITY_EDITOR
             m_disposed = true;
 #endif
+
+            //Complete the job first so we can rid of unmanaged resources.
+            if (m_scheduled) { m_currentHandle.Complete(); }
+
             m_procDependency = null;
             m_scheduled = false;
         }
