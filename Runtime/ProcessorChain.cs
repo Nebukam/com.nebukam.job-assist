@@ -14,15 +14,15 @@ namespace Nebukam.JobAssist
     public class ProcessorChain : IProcessor, IProcessorChain
     {
 
-        public IProcessorChain m_chain = null;
+        protected IProcessorChain m_chain = null;
         public IProcessorChain chain { get { return m_chain; } set { m_chain = value; } }
 
         public int chainIndex { get; set; } = -1;
 
-        protected List<IProcessor> m_stack = new List<IProcessor>();
-        public int Count { get { return m_stack.Count; } }
+        protected List<IProcessor> m_innerChain = new List<IProcessor>();
+        public int Count { get { return m_innerChain.Count; } }
 
-        public IProcessor this[int i] { get { return m_stack[i]; } }
+        public IProcessor this[int i] { get { return m_innerChain[i]; } }
              
 
         protected bool m_hasJobHandleDependency = false;
@@ -37,9 +37,9 @@ namespace Nebukam.JobAssist
 
         public void Add(IProcessor proc)
         {
-            if (m_stack.Contains(proc)) { return; }
+            if (m_innerChain.Contains(proc)) { return; }
             proc.chain = this;
-            m_stack.Add(proc);
+            m_innerChain.Add(proc);
         }
 
         protected bool m_scheduled = false;
@@ -72,12 +72,12 @@ namespace Nebukam.JobAssist
 
             m_procDependency = dependsOn;
 
-            int count = m_stack.Count;
+            int count = m_innerChain.Count;
             IProcessor proc, prevProc = dependsOn;
 
             for (int i = 0; i < count; i++)
             {
-                proc = m_stack[i];
+                proc = m_innerChain[i];
                 proc.chainIndex = i;
 
                 if (prevProc == null)
@@ -123,12 +123,12 @@ namespace Nebukam.JobAssist
             m_procDependency = null;
             m_jobHandleDependency = dependsOn;
 
-            int count = m_stack.Count;
+            int count = m_innerChain.Count;
             IProcessor proc, prevProc = null;
 
             for (int i = 0; i < count; i++)
             {
-                proc = m_stack[i];
+                proc = m_innerChain[i];
                 proc.chainIndex = i;
 
                 if (prevProc == null)
@@ -165,10 +165,10 @@ namespace Nebukam.JobAssist
 
             m_procDependency?.Complete();
 
-            int count = m_stack.Count;
+            int count = m_innerChain.Count;
             for(int i = 0; i < count; i++)
             {
-                m_stack[i].Complete();
+                m_innerChain[i].Complete();
             }
 
             m_scheduled = false;
@@ -191,5 +191,20 @@ namespace Nebukam.JobAssist
             // Suppress finalization.
             GC.SuppressFinalize(this);
         }
+
+        /// <summary>
+        /// Dispose along with chain nodes
+        /// </summary>
+        public void DisposeAll()
+        {
+            if (m_scheduled) { m_currentHandle.Complete(); }
+            for (int i = 0, count = m_innerChain.Count; i < count; i++) { m_innerChain[i].Dispose(); }
+            // Dispose of unmanaged resources.
+            Dispose(true);
+            // Suppress finalization.
+            GC.SuppressFinalize(this);
+
+        }
+
     }
 }
