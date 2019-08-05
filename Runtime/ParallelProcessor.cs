@@ -8,46 +8,24 @@ using Unity.Collections;
 namespace Nebukam.JobAssist
 {
 
-    public interface IProcessor : IDisposable, ILockable
+    public interface IParallelProcessor : IProcessor
     {
         
-        float deltaMultiplier { get; set; }
+        int chunkSize { get; set; }
 
-        IProcessorGroup group { get; set; }
-        int groupIndex { get; set; }
-
-        bool scheduled { get; }
-        bool completed { get; }
-
-        IProcessor procDependency { get; }
-        JobHandle currentHandle { get; }
-        
-        JobHandle Schedule(float delta, IProcessor dependsOn = null);
-        JobHandle Schedule(float delta, JobHandle dependsOn);
-
-        /// <summary>
-        /// Complete the job.
-        /// </summary>
-        void Complete();
-
-        /// <summary>
-        /// Complete the job only if it is finished.
-        /// Return false if the job hasn't been scheduled.
-        /// </summary>
-        /// <returns>Whether the job has been completed or not</returns>
-        bool TryComplete();
-        
     }
 
 
-    public abstract class Processor<T> : IProcessor
-        where T : struct, IJob
+    public abstract class ParallelProcessor<T> : IParallelProcessor
+        where T : struct, IJobParallelFor
     {
 
         public float deltaMultiplier { get; set; } = 1.0f;
 
         protected bool m_locked = false;
         public bool locked { get { return m_locked; } }
+
+        public int chunkSize { get; set; } = 64;
 
         protected bool m_hasJobHandleDependency = false;
         protected JobHandle m_jobHandleDependency = default(JobHandle);
@@ -99,17 +77,17 @@ namespace Nebukam.JobAssist
             m_currentJob = new T();
 
             Lock();
-            Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
+            int jobLength = Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
 
             if (dependsOn != null)
             {
                 m_procDependency = dependsOn;
-                m_currentHandle = m_currentJob.Schedule(m_procDependency.currentHandle);
+                m_currentHandle = m_currentJob.Schedule(jobLength, chunkSize, m_procDependency.currentHandle);
             }
             else
             {
                 m_procDependency = null;
-                m_currentHandle = m_currentJob.Schedule();
+                m_currentHandle = m_currentJob.Schedule(jobLength, chunkSize);
             }
 
             return m_currentHandle;
@@ -144,14 +122,14 @@ namespace Nebukam.JobAssist
             m_currentJob = new T();
 
             Lock();
-            Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
+            int jobLength = Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
             
-            m_currentHandle = m_currentJob.Schedule(dependsOn);
+            m_currentHandle = m_currentJob.Schedule(jobLength, chunkSize, dependsOn);
 
             return m_currentHandle;
         }
 
-        protected abstract void Prepare(ref T job, float delta);
+        protected abstract int Prepare(ref T job, float delta);
 
         /// <summary>
         /// Complete the job.
@@ -175,7 +153,7 @@ namespace Nebukam.JobAssist
             m_currentHandle.Complete();
 
             m_scheduled = false;
-
+            
             Apply(ref m_currentJob);
             Unlock();
 
@@ -213,7 +191,7 @@ namespace Nebukam.JobAssist
         public void Unlock()
         {
             if (!m_locked) { return; }
-            
+
             //Complete the job for safety
             if (m_scheduled) { Complete(); }
             InternalUnlock();
@@ -251,9 +229,8 @@ namespace Nebukam.JobAssist
         protected bool TryGetFirstInGroup<P>(out P processor, bool deep = false)
             where P : class, IProcessor
         {
-
             processor = null;
-            if(m_group != null)
+            if (m_group != null)
             {
                 return m_group.TryGetFirst(groupIndex-1, out processor, deep);
             }

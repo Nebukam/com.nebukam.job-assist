@@ -1,17 +1,24 @@
-﻿using System;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Jobs;
+using System;
+using Unity.Collections;
 
 namespace Nebukam.JobAssist
 {
 
-    public interface IProcessorChain : IProcessor, IProcessorGroup
+    public interface IProcessorGroup : IProcessor
     {
+
+        int Count { get; }
+        IProcessor this[int i] { get; }
+        void DisposeAll();
+        bool TryGetFirst<P>(int startIndex, out P processor, bool deep = false) where P : class, IProcessor;
 
     }
     
-    public class ProcessorChain : IProcessor, IProcessorChain
+    public class ProcessorGroup : IProcessorGroup
     {
 
         public float deltaMultiplier { get; set; } = 1.0f;
@@ -30,11 +37,21 @@ namespace Nebukam.JobAssist
         protected IProcessor m_procDependency = null;
         public IProcessor procDependency { get { return m_procDependency; } }
 
-        //Last dependency of the stack
+        protected NativeArray<JobHandle> m_groupHandles = new NativeArray<JobHandle>(0, Allocator.Persistent);
+
+        //Combined handle of all group's member
         protected JobHandle m_currentHandle;
         public JobHandle currentHandle { get { return m_currentHandle; } }
 
         protected float m_deltaSum = 0f;
+
+        protected bool m_scheduled = false;
+        public bool scheduled { get { return m_scheduled; } }
+        public bool completed { get { return m_scheduled ? m_currentHandle.IsCompleted : false; } }
+
+#if UNITY_EDITOR
+        protected bool m_disposed = false;
+#endif
 
         #region items
 
@@ -43,14 +60,31 @@ namespace Nebukam.JobAssist
 
         public IProcessor this[int i] { get { return m_childs[i]; } }
 
+        public P Add<P>(P item)
+            where P : IProcessor
+        {
+            if (m_childs.Contains(item)) { return item; }
+            item.group = this;
+            item.groupIndex = m_childs.Count;
+            m_childs.Add(item);
+            return item;
+        }
+
+        public void Remove(IProcessor processor)
+        {
+            m_childs.Remove(processor);
+            for (int i = 0, count = m_childs.Count; i < count;  i++)
+                m_childs[i].groupIndex = i;
+        }
+
         public bool TryGetFirst<P>(int startIndex, out P processor, bool deep = false)
             where P : class, IProcessor
         {
-
+            
             processor = null;
             
-            if (startIndex == -1) { startIndex = m_childs.Count - 1; }
-            
+            if (startIndex == -1) { startIndex = m_childs.Count-1; }
+
             IProcessor child;
             IProcessorGroup subGroup;
             for (int i = startIndex; i >= 0; i--)
@@ -61,19 +95,20 @@ namespace Nebukam.JobAssist
                 {
                     return true;
                 }
-                
+
                 if (!deep) { continue; }
 
                 subGroup = child as IProcessorGroup;
-                if (subGroup != null)
+
+                if(subGroup != null 
+                    && subGroup.TryGetFirst(-1, out processor, deep))
                 {
-                    if(subGroup.TryGetFirst(-1, out processor, deep))
-                        return true;
+                    return true;
                 }
 
             }
 
-            if (m_group != null)
+            if(m_group != null)
             {
                 return m_group.TryGetFirst(groupIndex-1, out processor, deep);
             }
@@ -81,54 +116,10 @@ namespace Nebukam.JobAssist
             {
                 return false;
             }
-
+            
         }
-
-        public IProcessor Add(IProcessor proc)
-        {
-
-#if UNITY_EDITOR
-            if (m_locked)
-            {
-                throw new Exception("You cannot add new processors to a locked chain");
-            }
-#endif
-
-            if (m_childs.Contains(proc)) { return proc; }
-            proc.groupIndex = m_childs.Count;
-            proc.group = this;
-            m_childs.Add(proc);
-            return proc;
-        }
-
-        public T Add<T>(T proc)
-            where T : IProcessor
-        {
-
-#if UNITY_EDITOR
-            if (m_locked)
-            {
-                throw new Exception("You cannot add new processors to a locked chain");
-            }
-#endif
-
-            if (m_childs.Contains(proc)) { return proc; }
-            proc.groupIndex = m_childs.Count;
-            proc.group = this;
-            m_childs.Add(proc);
-            return proc;
-        }
-
 
         #endregion
-
-        protected bool m_scheduled = false;
-        public bool scheduled { get { return m_scheduled; } }
-        public bool completed { get { return m_scheduled ? m_currentHandle.IsCompleted : false; } }
-
-#if UNITY_EDITOR
-        protected bool m_disposed = false;
-#endif
 
         /// <summary>
         /// Schedule the job tasks.
@@ -152,9 +143,9 @@ namespace Nebukam.JobAssist
             m_hasJobHandleDependency = false;
 
             m_procDependency = dependsOn;
-            
+
             Lock();
-            
+
             m_currentHandle = ScheduleJobList(m_deltaSum * deltaMultiplier, dependsOn);
             return m_currentHandle;
 
@@ -164,20 +155,19 @@ namespace Nebukam.JobAssist
         {
 
             int count = m_childs.Count;
-            IProcessor proc, prevProc = dependsOn;
-            JobHandle handle = default(JobHandle);
 
-            for (int i = 0; i < count; i++)
+            if(m_groupHandles.Length != count)
             {
-                proc = m_childs[i];
-                proc.groupIndex = i;
-                
-                handle = prevProc == null ? proc.Schedule(delta) : proc.Schedule(delta, prevProc); ;
-                prevProc = proc;
-
+                m_groupHandles.Dispose();
+                m_groupHandles = new NativeArray<JobHandle>(count, Allocator.Persistent);
             }
+            
+            for (int i = 0; i < count; i++)
+                m_groupHandles[i] = m_childs[i].Schedule(delta, dependsOn);
+            
 
-            return handle;
+            return JobHandle.CombineDependencies(m_groupHandles);
+
         }
 
         /// <summary>
@@ -206,31 +196,28 @@ namespace Nebukam.JobAssist
             m_hasJobHandleDependency = true;
             m_procDependency = null;
             m_jobHandleDependency = dependsOn;
-            
+
             Lock();
-            
-            m_currentHandle = ScheduleJobList(m_deltaSum * deltaMultiplier);
+
+            m_currentHandle = ScheduleJobList(m_deltaSum * deltaMultiplier, dependsOn);
             return m_currentHandle;
 
         }
 
-        protected virtual JobHandle ScheduleJobList(float delta)
+        protected virtual JobHandle ScheduleJobList(float delta, JobHandle dependsOn)
         {
             int count = m_childs.Count;
-            IProcessor proc, prevProc = null;
-            JobHandle handle = default(JobHandle);
 
-            for (int i = 0; i < count; i++)
+            if (m_groupHandles.Length != count)
             {
-                proc = m_childs[i];
-                proc.groupIndex = i;
-
-                handle = prevProc == null ? proc.Schedule(delta, m_jobHandleDependency) : proc.Schedule(delta, prevProc); ;
-                prevProc = proc;
-
+                m_groupHandles.Dispose();
+                m_groupHandles = new NativeArray<JobHandle>(count, Allocator.Persistent);
             }
 
-            return handle;
+            for (int i = 0; i < count; i++)
+                m_groupHandles[i] = m_childs[i].Schedule(delta, dependsOn);
+
+            return JobHandle.CombineDependencies(m_groupHandles);
         }
 
         /// <summary>
@@ -247,17 +234,17 @@ namespace Nebukam.JobAssist
 #endif
 
             if (!m_scheduled) { return; }
-            
+
             m_procDependency?.Complete();
-            
+
             int count = m_childs.Count;
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 m_childs[i].Complete();
             }
 
             m_scheduled = false;
-            
+
             Apply();
             Unlock();
 
@@ -322,6 +309,7 @@ namespace Nebukam.JobAssist
 #if UNITY_EDITOR
             m_disposed = true;
 #endif
+            m_groupHandles.Dispose();
             m_procDependency = null;
             m_scheduled = false;
         }
