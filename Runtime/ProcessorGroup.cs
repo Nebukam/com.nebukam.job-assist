@@ -70,6 +70,20 @@ namespace Nebukam.JobAssist
             return item;
         }
 
+        /// <summary>
+        /// Create (if null) and add item
+        /// </summary>
+        /// <typeparam name="P"></typeparam>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public P Add<P>(ref P item)
+            where P : IProcessor, new()
+        {
+            if(item != null){ return Add(item); }
+            item = new P();
+            return Add(item);
+        }
+
         public void Remove(IProcessor processor)
         {
             m_childs.Remove(processor);
@@ -108,15 +122,13 @@ namespace Nebukam.JobAssist
 
             }
 
-            if(m_group != null)
+            if(m_group != null && groupIndex > 0)
             {
                 return m_group.TryGetFirst(groupIndex-1, out processor, deep);
             }
-            else
-            {
-                return false;
-            }
-            
+
+            return false;
+
         }
 
         #endregion

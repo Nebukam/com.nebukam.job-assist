@@ -73,15 +73,12 @@ namespace Nebukam.JobAssist
 
             }
 
-            if (m_group != null)
+            if (m_group != null && groupIndex > 0)
             {
                 return m_group.TryGetFirst(groupIndex-1, out processor, deep);
             }
-            else
-            {
-                return false;
-            }
 
+            return false;
         }
 
         public IProcessor Add(IProcessor proc)
@@ -101,8 +98,8 @@ namespace Nebukam.JobAssist
             return proc;
         }
 
-        public T Add<T>(T proc)
-            where T : IProcessor
+        public P Add<P>(P proc)
+            where P : IProcessor
         {
 
 #if UNITY_EDITOR
@@ -119,6 +116,19 @@ namespace Nebukam.JobAssist
             return proc;
         }
 
+        /// <summary>
+        /// Create (if null) and add item
+        /// </summary>
+        /// <typeparam name="P"></typeparam>
+        /// <param name="item"></param>
+        /// <returns></returns>
+        public P Add<P>(ref P item)
+            where P : IProcessor, new()
+        {
+            if (item != null) { return Add(item); }
+            item = new P();
+            return Add(item);
+        }
 
         #endregion
 
