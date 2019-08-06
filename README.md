@@ -1,5 +1,5 @@
 ![stable](https://img.shields.io/badge/stable-darkgreen.svg)
-![version 0.0.1](https://img.shields.io/badge/version-1.0.1-blue.svg)
+![version](https://img.shields.io/badge/dynamic/json?color=blue&label=version&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2FNebukam%2Fcom.nebukam.job-assist%2Fmaster%2Fpackage.json)
 ![in development](https://img.shields.io/badge/status-in%20development-blue.svg)
 
 # N:JobAssist
