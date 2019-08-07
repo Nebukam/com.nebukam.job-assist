@@ -213,7 +213,7 @@ namespace Nebukam.JobAssist
         public void Unlock()
         {
             if (!m_locked) { return; }
-            
+            m_locked = false;
             //Complete the job for safety
             if (m_scheduled) { Complete(); }
             InternalUnlock();
