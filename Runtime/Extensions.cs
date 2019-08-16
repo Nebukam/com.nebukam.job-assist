@@ -336,5 +336,43 @@ namespace Nebukam.JobAssist
             return resultCount;
         }
 
+        /// <summary>
+        /// Returns a clone of a NativeMultiHashMap
+        /// </summary>
+        /// <typeparam name="TKey"></typeparam>
+        /// <typeparam name="TValue"></typeparam>
+        /// <param name="this"></param>
+        /// <param name="alloc"></param>
+        /// <returns></returns>
+        public static NativeMultiHashMap<TKey, TValue> Clone<TKey, TValue>(this NativeMultiHashMap<TKey, TValue> @this, Allocator alloc)
+            where TKey : struct, IEquatable<TKey>
+            where TValue : struct
+        {
+
+            NativeMultiHashMap<TKey, TValue> cloneHashMap = new NativeMultiHashMap<TKey, TValue>(@this.Length, alloc);
+
+            NativeMultiHashMapIterator<TKey> it;
+            NativeArray<TKey> keys = @this.GetKeyArray(Allocator.Temp);
+            TKey key;
+            TValue value;
+
+            for (int k = 0, count = keys.Length; k < count; k++)
+            {
+                key = keys[k];
+                if (@this.TryGetFirstValue(key, out value, out it))
+                {
+                    cloneHashMap.Add(key, value);
+                    while (@this.TryGetNextValue(out value, ref it))
+                    {
+                        cloneHashMap.Add(key, value);
+                    }
+                }
+            }
+
+            keys.Dispose();
+
+            return cloneHashMap;
+        }
+
     }
 }
