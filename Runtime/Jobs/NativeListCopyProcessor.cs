@@ -7,9 +7,9 @@ namespace Nebukam.JobAssist
     {
 
         protected NativeList<T> m_outputList = new NativeList<T>(0, Allocator.Persistent);
-        
+
         public NativeList<T> inputList { get; set; }
-        public NativeList<T> outputList { get{ return m_outputList; } set { m_outputList = value; } }
+        public NativeList<T> outputList { get { return m_outputList; } set { m_outputList = value; } }
 
         protected override void InternalLock() { }
         protected override void InternalUnlock() { }
@@ -22,7 +22,7 @@ namespace Nebukam.JobAssist
 
         protected override void Apply(ref NativeListCopyJob<T> job)
         {
-            
+
         }
 
     }

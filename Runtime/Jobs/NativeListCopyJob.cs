@@ -1,6 +1,6 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Jobs;
-using Unity.Burst;
 
 namespace Nebukam.JobAssist
 {
@@ -18,7 +18,7 @@ namespace Nebukam.JobAssist
         {
             outputList.Clear();
             outputList.Capacity = inputList.Length;
-            for(int i = 0, count = inputList.Length; i < count; i++)
+            for (int i = 0, count = inputList.Length; i < count; i++)
                 outputList.Add(inputList[i]);
         }
 

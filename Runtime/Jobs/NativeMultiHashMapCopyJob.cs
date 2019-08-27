@@ -1,6 +1,6 @@
-﻿using Unity.Collections;
+﻿using Unity.Burst;
+using Unity.Collections;
 using Unity.Jobs;
-using Unity.Burst;
 
 namespace Nebukam.JobAssist
 {
@@ -26,10 +26,10 @@ namespace Nebukam.JobAssist
             for (int k = 0, count = keys.Length; k < count; k++)
             {
                 key = keys[k];
-                if(inputHashMap.TryGetFirstValue(key, out value, out it))
+                if (inputHashMap.TryGetFirstValue(key, out value, out it))
                 {
                     outputHashMap.Add(key, value);
-                    while(inputHashMap.TryGetNextValue(out value, ref it))
+                    while (inputHashMap.TryGetNextValue(out value, ref it))
                     {
                         outputHashMap.Add(key, value);
                     }

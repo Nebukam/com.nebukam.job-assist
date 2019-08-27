@@ -1,16 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Jobs;
-using System;
+﻿using System;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Nebukam.JobAssist
 {
 
     public interface IParallelProcessor : IProcessor
     {
-        
+
         int chunkSize { get; set; }
 
     }
@@ -45,7 +42,7 @@ namespace Nebukam.JobAssist
         protected float m_deltaSum = 0f;
 
         protected bool m_scheduled = false;
-        public bool scheduled { get { return m_scheduled; } }        
+        public bool scheduled { get { return m_scheduled; } }
         public bool completed { get { return m_scheduled ? m_currentHandle.IsCompleted : false; } }
 
 #if UNITY_EDITOR
@@ -102,7 +99,7 @@ namespace Nebukam.JobAssist
         /// <remark>
         /// This method is provided to support integration in regular Unity's Job System workflow
         /// </remark>
-        public virtual JobHandle Schedule(float delta, JobHandle dependsOn )
+        public virtual JobHandle Schedule(float delta, JobHandle dependsOn)
         {
 
 #if UNITY_EDITOR
@@ -123,7 +120,7 @@ namespace Nebukam.JobAssist
 
             Lock();
             int jobLength = Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
-            
+
             m_currentHandle = m_currentJob.Schedule(jobLength, chunkSize, dependsOn);
 
             return m_currentHandle;
@@ -140,7 +137,7 @@ namespace Nebukam.JobAssist
 #if UNITY_EDITOR
             if (m_disposed)
             {
-                throw new Exception("Complete() called on disposed JobHandler ( "+GetType().Name+" ).");
+                throw new Exception("Complete() called on disposed JobHandler ( " + GetType().Name + " ).");
             }
 #endif
 
@@ -153,7 +150,7 @@ namespace Nebukam.JobAssist
             m_currentHandle.Complete();
 
             m_scheduled = false;
-            
+
             Apply(ref m_currentJob);
             Unlock();
 
@@ -232,7 +229,7 @@ namespace Nebukam.JobAssist
             processor = null;
             if (m_group != null)
             {
-                return m_group.TryGetFirst(groupIndex-1, out processor, deep);
+                return m_group.TryGetFirst(groupIndex - 1, out processor, deep);
             }
             else
             {

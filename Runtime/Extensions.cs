@@ -1,6 +1,6 @@
 ﻿using System;
-using Unity.Jobs;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Nebukam.JobAssist
 {
@@ -33,10 +33,10 @@ namespace Nebukam.JobAssist
             int length = @this.Length;
             T val = @this[index];
 
-            for (int i = index; i < length-1; i++)
+            for (int i = index; i < length - 1; i++)
                 @this[i] = @this[i + 1];
 
-            @this.ResizeUninitialized(length-1);
+            @this.ResizeUninitialized(length - 1);
             return val;
 
         }
@@ -57,7 +57,7 @@ namespace Nebukam.JobAssist
             int length = @this.Length;
             T val = @this[index];
 
-            for (int i = index; i < length-1; i++)
+            for (int i = index; i < length - 1; i++)
                 @this[i] = @this[i + 1];
 
 
@@ -74,7 +74,7 @@ namespace Nebukam.JobAssist
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool Contains<TKey, TValue>(this NativeMultiHashMap<TKey, TValue> @this, ref TKey key, ref TValue value )
+        public static bool Contains<TKey, TValue>(this NativeMultiHashMap<TKey, TValue> @this, ref TKey key, ref TValue value)
             where TKey : struct, IEquatable<TKey>
             where TValue : struct, IEquatable<TValue>
         {
@@ -187,12 +187,12 @@ namespace Nebukam.JobAssist
         public static bool Contains<TValue>(this NativeList<TValue> @this, ref TValue value)
             where TValue : struct, IEquatable<TValue>
         {
-            for(int i = 0, count = @this.Length; i < count; i++ )
+            for (int i = 0, count = @this.Length; i < count; i++)
                 if (@this[i].Equals(value)) { return true; }
             return false;
         }
 
-        public static bool AddOnce<TValue>(this NativeList<TValue> @this,ref TValue value)
+        public static bool AddOnce<TValue>(this NativeList<TValue> @this, ref TValue value)
             where TValue : struct, IEquatable<TValue>
         {
             if (@this.Contains(ref value)) { return false; }

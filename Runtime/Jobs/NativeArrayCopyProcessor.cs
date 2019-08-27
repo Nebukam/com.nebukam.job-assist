@@ -17,7 +17,7 @@ namespace Nebukam.JobAssist
         {
 
             int length = inputArray.Length;
-            if(m_outputArray.Length != length)
+            if (m_outputArray.Length != length)
             {
                 m_outputArray.Dispose();
                 m_outputArray = new NativeArray<T>(length, Allocator.Persistent);

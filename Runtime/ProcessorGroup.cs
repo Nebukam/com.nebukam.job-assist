@@ -1,9 +1,7 @@
-﻿using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
-using Unity.Jobs;
-using System;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Nebukam.JobAssist
 {
@@ -17,7 +15,7 @@ namespace Nebukam.JobAssist
         bool TryGetFirst<P>(int startIndex, out P processor, bool deep = false) where P : class, IProcessor;
 
     }
-    
+
     public class ProcessorGroup : IProcessorGroup
     {
 
@@ -30,7 +28,7 @@ namespace Nebukam.JobAssist
         public IProcessorGroup group { get { return m_group; } set { m_group = value; } }
 
         public int groupIndex { get; set; } = -1;
-        
+
         protected bool m_hasJobHandleDependency = false;
         protected JobHandle m_jobHandleDependency = default(JobHandle);
 
@@ -79,7 +77,7 @@ namespace Nebukam.JobAssist
         public P Add<P>(ref P item)
             where P : IProcessor, new()
         {
-            if(item != null){ return Add(item); }
+            if (item != null) { return Add(item); }
             item = new P();
             return Add(item);
         }
@@ -87,17 +85,17 @@ namespace Nebukam.JobAssist
         public void Remove(IProcessor processor)
         {
             m_childs.Remove(processor);
-            for (int i = 0, count = m_childs.Count; i < count;  i++)
+            for (int i = 0, count = m_childs.Count; i < count; i++)
                 m_childs[i].groupIndex = i;
         }
 
         public bool TryGetFirst<P>(int startIndex, out P processor, bool deep = false)
             where P : class, IProcessor
         {
-            
+
             processor = null;
-            
-            if (startIndex == -1) { startIndex = m_childs.Count-1; }
+
+            if (startIndex == -1) { startIndex = m_childs.Count - 1; }
 
             IProcessor child;
             IProcessorGroup subGroup;
@@ -114,7 +112,7 @@ namespace Nebukam.JobAssist
 
                 subGroup = child as IProcessorGroup;
 
-                if(subGroup != null 
+                if (subGroup != null
                     && subGroup.TryGetFirst(-1, out processor, deep))
                 {
                     return true;
@@ -122,9 +120,9 @@ namespace Nebukam.JobAssist
 
             }
 
-            if(m_group != null && groupIndex > 0)
+            if (m_group != null && groupIndex > 0)
             {
-                return m_group.TryGetFirst(groupIndex-1, out processor, deep);
+                return m_group.TryGetFirst(groupIndex - 1, out processor, deep);
             }
 
             return false;
@@ -168,15 +166,15 @@ namespace Nebukam.JobAssist
 
             int count = m_childs.Count;
 
-            if(m_groupHandles.Length != count)
+            if (m_groupHandles.Length != count)
             {
                 m_groupHandles.Dispose();
                 m_groupHandles = new NativeArray<JobHandle>(count, Allocator.Persistent);
             }
-            
+
             for (int i = 0; i < count; i++)
                 m_groupHandles[i] = m_childs[i].Schedule(delta, dependsOn);
-            
+
 
             return JobHandle.CombineDependencies(m_groupHandles);
 

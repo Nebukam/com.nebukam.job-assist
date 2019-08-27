@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 using Unity.Jobs;
 
 namespace Nebukam.JobAssist
@@ -10,7 +9,7 @@ namespace Nebukam.JobAssist
     {
 
     }
-    
+
     public class ProcessorChain : IProcessor, IProcessorChain
     {
 
@@ -23,7 +22,7 @@ namespace Nebukam.JobAssist
         public IProcessorGroup group { get { return m_group; } set { m_group = value; } }
 
         public int groupIndex { get; set; } = -1;
-        
+
         protected bool m_hasJobHandleDependency = false;
         protected JobHandle m_jobHandleDependency = default(JobHandle);
 
@@ -48,9 +47,9 @@ namespace Nebukam.JobAssist
         {
 
             processor = null;
-            
+
             if (startIndex == -1) { startIndex = m_childs.Count - 1; }
-            
+
             IProcessor child;
             IProcessorGroup subGroup;
             for (int i = startIndex; i >= 0; i--)
@@ -61,13 +60,13 @@ namespace Nebukam.JobAssist
                 {
                     return true;
                 }
-                
+
                 if (!deep) { continue; }
 
                 subGroup = child as IProcessorGroup;
                 if (subGroup != null)
                 {
-                    if(subGroup.TryGetFirst(-1, out processor, deep))
+                    if (subGroup.TryGetFirst(-1, out processor, deep))
                         return true;
                 }
 
@@ -75,7 +74,7 @@ namespace Nebukam.JobAssist
 
             if (m_group != null && groupIndex > 0)
             {
-                return m_group.TryGetFirst(groupIndex-1, out processor, deep);
+                return m_group.TryGetFirst(groupIndex - 1, out processor, deep);
             }
 
             return false;
@@ -162,9 +161,9 @@ namespace Nebukam.JobAssist
             m_hasJobHandleDependency = false;
 
             m_procDependency = dependsOn;
-            
+
             Lock();
-            
+
             m_currentHandle = ScheduleJobList(m_deltaSum * deltaMultiplier, dependsOn);
             return m_currentHandle;
 
@@ -181,7 +180,7 @@ namespace Nebukam.JobAssist
             {
                 proc = m_childs[i];
                 proc.groupIndex = i;
-                
+
                 handle = prevProc == null ? proc.Schedule(delta) : proc.Schedule(delta, prevProc); ;
                 prevProc = proc;
 
@@ -216,9 +215,9 @@ namespace Nebukam.JobAssist
             m_hasJobHandleDependency = true;
             m_procDependency = null;
             m_jobHandleDependency = dependsOn;
-            
+
             Lock();
-            
+
             m_currentHandle = ScheduleJobList(m_deltaSum * deltaMultiplier);
             return m_currentHandle;
 
@@ -257,17 +256,17 @@ namespace Nebukam.JobAssist
 #endif
 
             if (!m_scheduled) { return; }
-            
+
             m_procDependency?.Complete();
-            
+
             int count = m_childs.Count;
-            for(int i = 0; i < count; i++)
+            for (int i = 0; i < count; i++)
             {
                 m_childs[i].Complete();
             }
 
             m_scheduled = false;
-            
+
             Apply();
             Unlock();
 

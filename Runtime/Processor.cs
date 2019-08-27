@@ -1,16 +1,13 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unity.Jobs;
-using System;
+﻿using System;
 using Unity.Collections;
+using Unity.Jobs;
 
 namespace Nebukam.JobAssist
 {
 
     public interface IProcessor : IDisposable, ILockable
     {
-        
+
         float deltaMultiplier { get; set; }
 
         IProcessorGroup group { get; set; }
@@ -21,7 +18,7 @@ namespace Nebukam.JobAssist
 
         IProcessor procDependency { get; }
         JobHandle currentHandle { get; }
-        
+
         JobHandle Schedule(float delta, IProcessor dependsOn = null);
         JobHandle Schedule(float delta, JobHandle dependsOn);
 
@@ -36,7 +33,7 @@ namespace Nebukam.JobAssist
         /// </summary>
         /// <returns>Whether the job has been completed or not</returns>
         bool TryComplete();
-        
+
     }
 
 
@@ -67,7 +64,7 @@ namespace Nebukam.JobAssist
         protected float m_deltaSum = 0f;
 
         protected bool m_scheduled = false;
-        public bool scheduled { get { return m_scheduled; } }        
+        public bool scheduled { get { return m_scheduled; } }
         public bool completed { get { return m_scheduled ? m_currentHandle.IsCompleted : false; } }
 
 #if UNITY_EDITOR
@@ -124,7 +121,7 @@ namespace Nebukam.JobAssist
         /// <remark>
         /// This method is provided to support integration in regular Unity's Job System workflow
         /// </remark>
-        public virtual JobHandle Schedule(float delta, JobHandle dependsOn )
+        public virtual JobHandle Schedule(float delta, JobHandle dependsOn)
         {
 
 #if UNITY_EDITOR
@@ -145,7 +142,7 @@ namespace Nebukam.JobAssist
 
             Lock();
             Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
-            
+
             m_currentHandle = m_currentJob.Schedule(dependsOn);
 
             return m_currentHandle;
@@ -162,7 +159,7 @@ namespace Nebukam.JobAssist
 #if UNITY_EDITOR
             if (m_disposed)
             {
-                throw new Exception("Complete() called on disposed JobHandler ( "+GetType().Name+" ).");
+                throw new Exception("Complete() called on disposed JobHandler ( " + GetType().Name + " ).");
             }
 #endif
 
@@ -253,9 +250,9 @@ namespace Nebukam.JobAssist
         {
 
             processor = null;
-            if(m_group != null)
+            if (m_group != null)
             {
-                return m_group.TryGetFirst(groupIndex-1, out processor, deep);
+                return m_group.TryGetFirst(groupIndex - 1, out processor, deep);
             }
             else
             {
