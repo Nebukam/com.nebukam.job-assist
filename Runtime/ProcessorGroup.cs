@@ -103,6 +103,7 @@ namespace Nebukam.JobAssist
             {
                 child = m_childs[i];
                 processor = child as P;
+
                 if (processor != null)
                 {
                     return true;
