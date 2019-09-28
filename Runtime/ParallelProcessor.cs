@@ -71,7 +71,7 @@ namespace Nebukam.JobAssist
             m_scheduled = true;
             m_hasJobHandleDependency = false;
 
-            m_currentJob = new T();
+            m_currentJob = default;
 
             Lock();
             int jobLength = Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
@@ -116,7 +116,7 @@ namespace Nebukam.JobAssist
             m_hasJobHandleDependency = true;
             m_procDependency = null;
 
-            m_currentJob = new T();
+            m_currentJob = default;
 
             Lock();
             int jobLength = Prepare(ref m_currentJob, m_deltaSum * deltaMultiplier);
