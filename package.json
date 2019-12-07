@@ -16,8 +16,8 @@
   },
   "dependencies": {
     "com.unity.burst": "1.1.2",
-    "com.unity.collections": "0.0.9",
-    "com.unity.jobs": "0.0.7"
+    "com.unity.jobs": "0.0.7",
+	"com.unity.collections": "0.0.9-preview.20"
   },
   "samples": [
     {
