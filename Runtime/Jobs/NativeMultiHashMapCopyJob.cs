@@ -17,7 +17,7 @@ namespace Nebukam.JobAssist
         public void Execute()
         {
             outputHashMap.Clear();
-            outputHashMap.Capacity = inputHashMap.Length;
+            outputHashMap.Capacity = inputHashMap.Count();
 
             NativeMultiHashMapIterator<TKey> it;
             NativeArray<TKey> keys = inputHashMap.GetKeyArray(Allocator.Temp);

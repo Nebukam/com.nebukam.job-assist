@@ -215,7 +215,7 @@ namespace Nebukam.JobAssist
             where TValue : struct
         {
 
-            NativeMultiHashMap<TKey, TValue> cloneHashMap = new NativeMultiHashMap<TKey, TValue>(@this.Length, alloc);
+            NativeMultiHashMap<TKey, TValue> cloneHashMap = new NativeMultiHashMap<TKey, TValue>(@this.Count(), alloc);
 
             NativeMultiHashMapIterator<TKey> it;
             NativeArray<TKey> keys = @this.GetKeyArray(Allocator.Temp);
