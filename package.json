@@ -12,7 +12,7 @@
   "author": {
     "name": "Timothe Lapetite",
     "email": "nebukam@gmail.com",
-    "url": "https://github.com/Nebukam/com.nebukam.job-assist.git"
+    "url": "https://github.com/Nebukam/com.nebukam.job-assist.git#1.0.1"
   },
   "dependencies": {
     "com.unity.burst": "1.4.3",
