@@ -1,6 +1,7 @@
 ![stable](https://img.shields.io/badge/stable-darkgreen.svg)
 ![version](https://img.shields.io/badge/dynamic/json?color=blue&label=version&query=version&url=https%3A%2F%2Fraw.githubusercontent.com%2FNebukam%2Fcom.nebukam.job-assist%2Fmaster%2Fpackage.json)
 ![in development](https://img.shields.io/badge/status-in%20development-blue.svg)
+[![doc](https://img.shields.io/badge/documentation-darkgreen.svg)](https://nebukam.github.io/docs/unity/com.nebukam.job-assist/)
 
 # N:JobAssist
 #### Helper library for Unity's Job System

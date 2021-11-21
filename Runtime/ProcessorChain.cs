@@ -147,7 +147,7 @@ namespace Nebukam.JobAssist
         /// <returns></returns>
         public virtual JobHandle Schedule(float delta, IProcessor dependsOn = null)
         {
-
+            //TODO : Allow the delta NOT to be summed with previous values
 #if UNITY_EDITOR
             if (m_disposed)
             {
