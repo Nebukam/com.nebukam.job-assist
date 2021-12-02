@@ -45,6 +45,7 @@ namespace Nebukam.JobAssist
         public JobHandle currentHandle { get { return m_currentHandle; } }
 
         protected float m_lockedDelta = 0f;
+        protected float m_scaledLockedDelta = 0f;
         protected float m_deltaSum = 0f;
 
         protected bool m_scheduled = false;
@@ -162,7 +163,7 @@ namespace Nebukam.JobAssist
 
             Lock();
 
-            m_currentHandle = ScheduleJobList(m_lockedDelta * deltaMultiplier, dependsOn);
+            m_currentHandle = ScheduleJobList(m_scaledLockedDelta, dependsOn);
             return m_currentHandle;
 
         }
@@ -215,7 +216,7 @@ namespace Nebukam.JobAssist
 
             Lock();
 
-            m_currentHandle = ScheduleJobList(m_deltaSum * deltaMultiplier, dependsOn);
+            m_currentHandle = ScheduleJobList(m_scaledLockedDelta, dependsOn);
             return m_currentHandle;
 
         }
@@ -291,6 +292,7 @@ namespace Nebukam.JobAssist
             if (m_locked) { return; }
             m_locked = true;
             m_lockedDelta = m_deltaSum;
+            m_scaledLockedDelta = m_lockedDelta * deltaMultiplier;
             InternalLock();
         }
 
