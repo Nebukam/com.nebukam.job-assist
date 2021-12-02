@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Nebukam.JobAssist
 {
-    static partial class CollectionsUtils
+    static public partial class CollectionsUtils
     {
 
         /// <summary>
