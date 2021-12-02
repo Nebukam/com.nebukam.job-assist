@@ -19,7 +19,7 @@ namespace Nebukam.JobAssist
 
             int length = inputArray.Length;
 
-            EnsureLength(ref m_outputArray, length);
+            MakeLength(ref m_outputArray, length);
 
             job.inputArray = inputArray;
             job.outputArray = outputArray;

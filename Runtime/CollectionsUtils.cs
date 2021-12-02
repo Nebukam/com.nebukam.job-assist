@@ -14,7 +14,7 @@ namespace Nebukam.JobAssist
         /// <param name="length"></param>
         /// <param name="alloc"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
-        public static bool EnsureLength<T>(ref NativeArray<T> nativeArray, int length, Allocator alloc = Allocator.Persistent)
+        public static bool MakeLength<T>(ref NativeArray<T> nativeArray, int length, Allocator alloc = Allocator.Persistent)
             where T : struct
         {
             if(nativeArray.Length != length)
@@ -63,7 +63,7 @@ namespace Nebukam.JobAssist
             where T : struct
         {
             int count = sourceManagedArray.Length;
-            bool resized = EnsureLength<T>(ref targetNativeArray, sourceManagedArray.Length);
+            bool resized = MakeLength<T>(ref targetNativeArray, sourceManagedArray.Length);
             
             for(int i = 0; i < count; i++)
                 targetNativeArray[i] = sourceManagedArray[i];
@@ -83,7 +83,7 @@ namespace Nebukam.JobAssist
             where T : struct
         {
             int count = sourceManagedList.Count;
-            bool resized = EnsureLength<T>(ref targetNativeArray, sourceManagedList.Count);
+            bool resized = MakeLength<T>(ref targetNativeArray, sourceManagedList.Count);
 
             for (int i = 0; i < count; i++)
                 targetNativeArray[i] = sourceManagedList[i];
