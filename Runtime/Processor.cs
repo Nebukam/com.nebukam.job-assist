@@ -178,8 +178,6 @@ namespace Nebukam.JobAssist
             Apply(ref m_currentJob);
             Unlock();
 
-            m_deltaSum = 0f;
-
         }
 
         public bool TryComplete()
@@ -206,6 +204,7 @@ namespace Nebukam.JobAssist
             m_locked = true;
             m_lockedDelta = m_deltaSum;
             m_scaledLockedDelta = m_lockedDelta * deltaMultiplier;
+            m_deltaSum = 0f;
             InternalLock();
         }
 
