@@ -1,4 +1,5 @@
 ﻿using Unity.Collections;
+using static Nebukam.JobAssist.CollectionsUtils;
 
 namespace Nebukam.JobAssist
 {
@@ -17,11 +18,8 @@ namespace Nebukam.JobAssist
         {
 
             int length = inputArray.Length;
-            if (m_outputArray.Length != length)
-            {
-                m_outputArray.Dispose();
-                m_outputArray = new NativeArray<T>(length, Allocator.Persistent);
-            }
+
+            EnsureLength(ref m_outputArray, length);
 
             job.inputArray = inputArray;
             job.outputArray = outputArray;
