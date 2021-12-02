@@ -1,6 +1,6 @@
 {
   "name": "com.nebukam.job-assist",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "displayName": "N:JobAssist",
   "description": "Micro helper library for Unity's Job System",
   "unity": "2019.4",
@@ -13,7 +13,7 @@
   "author": {
     "name": "Timothe Lapetite",
     "email": "nebukam@gmail.com",
-    "url": "https://github.com/Nebukam/com.nebukam.job-assist.git#1.0.3"
+    "url": "https://github.com/Nebukam/com.nebukam.job-assist"
   },
   "dependencies": {
     "com.unity.burst": "1.4.3",
