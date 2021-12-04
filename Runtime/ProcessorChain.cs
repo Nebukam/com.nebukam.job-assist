@@ -124,14 +124,98 @@ namespace Nebukam.JobAssist
         /// Create (if null) and add item
         /// </summary>
         /// <typeparam name="P"></typeparam>
-        /// <param name="item"></param>
+        /// <param name="proc"></param>
         /// <returns></returns>
-        public P Add<P>(ref P item)
+        public P Add<P>(ref P proc)
             where P : IProcessor, new()
         {
-            if (item != null) { return Add(item); }
-            item = new P();
-            return Add(item);
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot add new processors to a locked chain");
+            }
+#endif
+            if (proc != null) { return Add(proc); }
+            proc = new P();
+            return Add(proc);
+        }
+
+        public P Insert<P>(int atIndex, P proc)
+            where P : IProcessor
+        {
+
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot insert new processors to a locked chain");
+            }
+#endif
+            if (m_childs.Contains(proc)) { return proc; } //TODO: Handle situation gracefully, re-order ?
+            if (atIndex > m_childs.Count - 1) { return Add(proc); }
+
+            m_childs.Insert(atIndex, proc);
+
+            for (int i = atIndex; i < m_childs.Count; i++)
+                m_childs[i].groupIndex = i;
+
+            return proc;
+        }
+
+        public P InsertBefore<P>(IProcessor beforeItem, P proc)
+            where P : IProcessor
+        {
+
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot insert new processors to a locked chain");
+            }
+#endif
+            int atIndex = m_childs.IndexOf(beforeItem);
+            if(atIndex == -1) { return Add(proc); }
+            return Insert(atIndex, proc);
+        }
+
+        public P InsertBefore<P>(IProcessor beforeProc, ref P proc)
+            where P : IProcessor, new()
+        {
+
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot insert new processors to a locked chain");
+            }
+#endif
+            if (proc != null) { return InsertBefore(beforeProc, proc); }
+            proc = new P();
+            return InsertBefore(beforeProc, proc);
+        }
+
+        /// <summary>
+        /// Removes a processor from the chain
+        /// </summary>
+        /// <param name="proc"></param>
+        public void Remove(IProcessor proc)
+        {
+
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot remove processors from a locked chain");
+            }
+#endif
+
+            int index = m_childs.IndexOf(proc);
+            if (index == -1) { return; }
+
+            m_childs.RemoveAt(index);
+
+            // Need to update groupIndex for remaining items in chain, if index isn't the last one
+            int count = m_childs.Count;
+            if (index >= count - 1) { return; }
+            for(int i = index; i < count; i++ )
+                m_childs[i].groupIndex = i;
+
         }
 
         #endregion

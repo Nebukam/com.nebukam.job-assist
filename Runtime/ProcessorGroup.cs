@@ -63,35 +63,67 @@ namespace Nebukam.JobAssist
 
         public IProcessor this[int i] { get { return m_childs[i]; } }
 
-        public P Add<P>(P item)
+        public P Add<P>(P proc)
             where P : IProcessor
         {
-            if (m_childs.Contains(item)) { return item; }
-            item.group = this;
-            item.groupIndex = m_childs.Count;
-            m_childs.Add(item);
-            return item;
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot add processors to a locked group");
+            }
+#endif
+            if (m_childs.Contains(proc)) { return proc; }
+            proc.group = this;
+            proc.groupIndex = m_childs.Count;
+            m_childs.Add(proc);
+            return proc;
         }
 
         /// <summary>
         /// Create (if null) and add item
         /// </summary>
         /// <typeparam name="P"></typeparam>
-        /// <param name="item"></param>
+        /// <param name="proc"></param>
         /// <returns></returns>
-        public P Add<P>(ref P item)
+        public P Add<P>(ref P proc)
             where P : IProcessor, new()
         {
-            if (item != null) { return Add(item); }
-            item = new P();
-            return Add(item);
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot add processors to a locked group");
+            }
+#endif
+            if (proc != null) { return Add(proc); }
+            proc = new P();
+            return Add(proc);
         }
 
-        public void Remove(IProcessor processor)
+        /// <summary>
+        /// Removes a processor from the chain
+        /// </summary>
+        /// <param name="proc"></param>
+        public void Remove(IProcessor proc)
         {
-            m_childs.Remove(processor);
-            for (int i = 0, count = m_childs.Count; i < count; i++)
+
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot remove processors from a locked group");
+            }
+#endif
+
+            int index = m_childs.IndexOf(proc);
+            if (index == -1) { return; }
+
+            m_childs.RemoveAt(index);
+
+            // Need to update groupIndex for remaining items in chain, if index isn't the last one
+            int count = m_childs.Count;
+            if (index >= count - 1) { return; }
+            for (int i = index; i < count; i++)
                 m_childs[i].groupIndex = i;
+
         }
 
         public bool TryGetFirst<P>(int startIndex, out P processor, bool deep = false)
@@ -162,6 +194,7 @@ namespace Nebukam.JobAssist
             m_procDependency = dependsOn;
 
             Lock();
+            Prepare(m_scaledLockedDelta);
 
             m_currentHandle = ScheduleJobList(m_scaledLockedDelta, dependsOn);
             return m_currentHandle;
@@ -215,6 +248,7 @@ namespace Nebukam.JobAssist
             m_jobHandleDependency = dependsOn;
 
             Lock();
+            Prepare(m_scaledLockedDelta);
 
             m_currentHandle = ScheduleJobList(m_scaledLockedDelta, dependsOn);
             return m_currentHandle;
@@ -236,6 +270,13 @@ namespace Nebukam.JobAssist
 
             return JobHandle.CombineDependencies(m_groupHandles);
         }
+
+        /// <summary>
+        /// In a ProcessorGroup, Prepare is called right before scheduling the existing group for the job.
+        /// If you intend to dynamically modify the group childs list, do so in InternalLock(), right before base.InternalLock().
+        /// </summary>
+        /// <param name="delta"></param>
+        protected virtual void Prepare(float delta) { }
 
         /// <summary>
         /// Complete all the jobs in the stack.
