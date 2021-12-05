@@ -25,5 +25,10 @@ namespace Nebukam.JobAssist
 
         }
 
+        protected override void InternalDispose()
+        {
+            m_outputList.Dispose();
+        }
+
     }
 }
