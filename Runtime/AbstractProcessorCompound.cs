@@ -19,7 +19,9 @@ namespace Nebukam.JobAssist
     public abstract class AbstractProcessorCompound : AbstractProcessor, IProcessorCompound
     {
 
-        
+        protected EmptyCompound m_emptyCompoundJob;
+        protected bool m_isEmptyCompound = false;
+
         protected List<IProcessor> m_childs = new List<IProcessor>();
         public int Count { get { return m_childs.Count; } }
 
@@ -180,6 +182,18 @@ namespace Nebukam.JobAssist
             Prepare(m_scaledLockedDelta);
         }
 
+        internal JobHandle ScheduleEmpty(IProcessor dependsOn = null)
+        {
+            return dependsOn == null
+                ? m_emptyCompoundJob.Schedule()
+                : m_emptyCompoundJob.Schedule(dependsOn.currentHandle);
+        }
+
+        internal JobHandle ScheduleEmpty(JobHandle dependsOn)
+        {
+            return m_emptyCompoundJob.Schedule(dependsOn);
+        }
+
         /// <summary>
         /// In a ProcessorGroup, Prepare is called right before scheduling the existing group for the job.
         /// If you intend to dynamically modify the group childs list, do so in InternalLock(), right before base.InternalLock().
@@ -193,11 +207,18 @@ namespace Nebukam.JobAssist
 
         protected override void OnCompleteBegins()
         {
-            
-            int count = m_childs.Count;
-            for (int i = 0; i < count; i++)
+
+            if (m_isEmptyCompound)
             {
-                m_childs[i].Complete();
+                m_currentHandle.Complete();
+            }
+            else
+            {
+                int count = m_childs.Count;
+                for (int i = 0; i < count; i++)
+                {
+                    m_childs[i].Complete();
+                }
             }
 
             Apply();
@@ -214,9 +235,21 @@ namespace Nebukam.JobAssist
         {
 
             if (m_locked) { return; }
+            
             base.Lock();
 
-            for (int i = 0, count = m_childs.Count; i < count; i++)
+            int numChildren = m_childs.Count;
+            if(numChildren == 0)
+            {
+                m_isEmptyCompound = true;
+                m_emptyCompoundJob = default;
+            }
+            else
+            {
+                m_isEmptyCompound = false;
+            }
+
+            for (int i = 0; i < numChildren; i++)
                 m_childs[i].Lock();
 
         }

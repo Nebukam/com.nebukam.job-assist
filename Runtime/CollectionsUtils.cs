@@ -56,18 +56,15 @@ namespace Nebukam.JobAssist
         /// Ensure the target native array has the same length as the source.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="sourceManagedArray"></param>
-        /// <param name="targetNativeArray"></param>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
-        public static bool Copy<T>(ref T[] sourceManagedArray, ref NativeArray<T> targetNativeArray)
+        public static bool Copy<T>( T[] src, ref NativeArray<T> dest)
             where T : struct
         {
-            int count = sourceManagedArray.Length;
-            bool resized = MakeLength<T>(ref targetNativeArray, sourceManagedArray.Length);
-            
-            for(int i = 0; i < count; i++)
-                targetNativeArray[i] = sourceManagedArray[i];
-            
+            int count = src.Length;
+            bool resized = MakeLength<T>(ref dest, src.Length);
+            NativeArray<T>.Copy(src, dest);            
             return resized;
         }
 
@@ -76,17 +73,17 @@ namespace Nebukam.JobAssist
         /// Ensure the target native array has the same length as the source.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="sourceManagedList"></param>
-        /// <param name="targetNativeArray"></param>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
-        public static bool Copy<T>(ref List<T> sourceManagedList, ref NativeArray<T> targetNativeArray)
+        public static bool Copy<T>( List<T> src, ref NativeArray<T> dest)
             where T : struct
         {
-            int count = sourceManagedList.Count;
-            bool resized = MakeLength<T>(ref targetNativeArray, sourceManagedList.Count);
+            int count = src.Count;
+            bool resized = MakeLength<T>(ref dest, src.Count);
 
             for (int i = 0; i < count; i++)
-                targetNativeArray[i] = sourceManagedList[i];
+                dest[i] = src[i];
 
             return resized;
         }
@@ -96,18 +93,18 @@ namespace Nebukam.JobAssist
         /// Ensure the target native array has the same length as the source.
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="sourceManagedList"></param>
-        /// <param name="targetNativeList"></param>
-        public static void Copy<T>(ref List<T> sourceManagedList, ref NativeList<T> targetNativeList)
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        public static void Copy<T>( List<T> src, ref NativeList<T> dest)
             where T : struct
         {
-            int count = sourceManagedList.Count;
+            int count = src.Count;
 
-            targetNativeList.Clear();
-            if (targetNativeList.Capacity <= count) { targetNativeList.Capacity = count+1; }
+            dest.Clear();
+            if (dest.Capacity <= count) { dest.Capacity = count+1; }
 
             for (int i = 0; i < count; i++)
-                targetNativeList.AddNoResize(sourceManagedList[i]);
+                dest.AddNoResize(src[i]);
 
         }
 

@@ -199,11 +199,11 @@ namespace Nebukam.JobAssist
         public virtual void Lock()
         {
             if (m_locked) { return; }
-            m_locked = true;
             m_lockedDelta = m_deltaSum;
             m_scaledLockedDelta = m_lockedDelta * deltaMultiplier;
             m_deltaSum = 0f;
             InternalLock();
+            m_locked = true;
         }
 
         protected abstract void InternalLock();

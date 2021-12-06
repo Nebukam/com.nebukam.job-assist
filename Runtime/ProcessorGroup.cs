@@ -30,6 +30,9 @@ namespace Nebukam.JobAssist
 
         internal override JobHandle OnScheduled(IProcessor dependsOn = null)
         {
+
+            if (m_isEmptyCompound) { return ScheduleEmpty(dependsOn); }
+
             int count = Count;
 
             for (int i = 0; i < count; i++)
@@ -40,6 +43,9 @@ namespace Nebukam.JobAssist
 
         internal override JobHandle OnScheduled(JobHandle dependsOn)
         {
+
+            if (m_isEmptyCompound) { return ScheduleEmpty(dependsOn); }
+
             int count = Count;
 
             for (int i = 0; i < count; i++)
