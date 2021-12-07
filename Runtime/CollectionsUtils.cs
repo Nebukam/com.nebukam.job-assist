@@ -29,6 +29,27 @@ namespace Nebukam.JobAssist
         }
 
         /// <summary>
+        /// Ensure a NativeArray is of required size.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="nativeArray"></param>
+        /// <param name="length"></param>
+        /// <param name="alloc"></param>
+        /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
+        public static bool MakeLength<T>(ref T[] array, int length)
+            where T : struct
+        {
+            if (array.Length != length)
+            {
+                array = new T[length];
+                return false;
+            }
+
+            return true;
+
+        }
+
+        /// <summary>
         /// Ensure a NativeArray has at least a given size.
         /// </summary>
         /// <typeparam name="T"></typeparam>
@@ -65,6 +86,24 @@ namespace Nebukam.JobAssist
             int count = src.Length;
             bool resized = MakeLength<T>(ref dest, src.Length);
             NativeArray<T>.Copy(src, dest);            
+            return resized;
+        }
+
+        /// <summary>
+        /// Copies the content of a NativeArray into a managed array
+        /// Ensure the target native array has the same length as the source.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="src"></param>
+        /// <param name="dest"></param>
+        /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
+        public static bool Copy<T>(NativeArray<T> src, ref T[] dest)
+            where T : struct
+        {
+            int count = src.Length;
+            bool resized = dest.Length != count;
+            if(resized) { dest = new T[count]; }
+            NativeArray<T>.Copy(src, dest);
             return resized;
         }
 

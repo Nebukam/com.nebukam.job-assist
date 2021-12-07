@@ -11,7 +11,8 @@ namespace Nebukam.JobAssist
     }
 
     /// <summary>
-    /// 
+    /// A ProcessorChain chains its child processor and return the last
+    /// job of the chain as its handle.
     /// </summary>
     public abstract class ProcessorChain : AbstractProcessorCompound, IProcessorChain
     {

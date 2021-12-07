@@ -9,9 +9,32 @@ namespace Nebukam.JobAssist
     public interface IProcessorCompound : IProcessor
     {
 
+        /// <summary>
+        /// Return the current number of children in this compound
+        /// </summary>
         int Count { get; }
+        
+        /// <summary>
+        /// Return the child stored at a given index
+        /// </summary>
+        /// <param name="i"></param>
+        /// <returns></returns>
         IProcessor this[int i] { get; }
+                
+        /// <summary>
+        /// Dispose of the compound as well as all of its childrens. 
+        /// Recursive.
+        /// </summary>
         void DisposeAll();
+
+        /// <summary>
+        /// Attempt to find the first item of type P
+        /// </summary>
+        /// <typeparam name="P"></typeparam>
+        /// <param name="startIndex"></param>
+        /// <param name="processor"></param>
+        /// <param name="deep"></param>
+        /// <returns></returns>
         bool TryGetFirst<P>(int startIndex, out P processor, bool deep = false) where P : class, IProcessor;
 
     }

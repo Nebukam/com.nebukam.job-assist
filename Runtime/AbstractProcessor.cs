@@ -8,27 +8,60 @@ namespace Nebukam.JobAssist
     public interface IProcessor : IDisposable, ILockable
     {
 
+        /// <summary>
+        /// User-defined delta multiplier.
+        /// </summary>
         float deltaMultiplier { get; set; }
 
+        /// <summary>
+        /// Parent compound for this processor, if any
+        /// </summary>
         IProcessorCompound compound { get; set; }
+        /// <summary>
+        /// Index of this processor inside its parent
+        /// </summary>
         int compoundIndex { get; set; }
 
+        /// <summary>
+        /// Return whether or not this processor' job is scheduled
+        /// </summary>
         bool scheduled { get; }
+        /// <summary>
+        /// Return whether or not this processor' job is completed
+        /// </summary>
         bool completed { get; }
 
+        /// <summary>
+        /// Return the current IProcessor dependency, if any.
+        /// </summary>
         IProcessor procDependency { get; }
+        /// <summary>
+        /// Return the current JobHandle dependency, if any.
+        /// </summary>
         JobHandle currentHandle { get; }
 
+        /// <summary>
+        /// Schedule the processor' job if not scheduled already.
+        /// </summary>
+        /// <param name="delta"></param>
+        /// <param name="dependsOn">IProcessor dependency.</param>
+        /// <returns></returns>
         JobHandle Schedule(float delta, IProcessor dependsOn = null);
+        /// <summary>
+        /// Schedule the processor' job if not scheduled already.
+        /// </summary>
+        /// <param name="delta"></param>
+        /// <param name="dependsOn">JobHandle dependency.</param>
+        /// <returns></returns>
         JobHandle Schedule(float delta, JobHandle dependsOn);
 
         /// <summary>
-        /// Complete the job.
+        /// Completes the job.
         /// </summary>
         void Complete();
 
         /// <summary>
-        /// Complete the job only if it is finished.
+        /// Completes the job only if it is finished.
         /// Return false if the job hasn't been scheduled.
         /// </summary>
         /// <returns>Whether the job has been completed or not</returns>

@@ -13,7 +13,8 @@ namespace Nebukam.JobAssist
     }
 
     /// <summary>
-    /// 
+    /// A ProcessorGroup starts its child processors at the same time 
+    /// and return a combined handle
     /// </summary>
     public abstract class ProcessorGroup : AbstractProcessorCompound, IProcessorGroup
     {
