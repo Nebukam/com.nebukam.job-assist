@@ -36,27 +36,31 @@ namespace Nebukam.JobAssist
 
         #region Complete & Apply
 
-        protected override void OnCompleteBegins()
+        protected sealed override void OnCompleteBegins()
         {
             m_currentHandle.Complete();
         }
 
-        protected override void OnCompleteEnds()
+        protected sealed override void OnCompleteEnds()
         {
             Apply(ref m_currentJob);
         }
 
-        protected abstract void Apply(ref T job);
+        protected virtual void Apply(ref T job) { }
 
         #endregion
 
         #region ILockable
 
-        public override void Lock()
+        public sealed override void Lock()
         {
             if (m_locked) { return; }
             m_currentJob = default;
             base.Lock();
+        }
+
+        public sealed override void Unlock(){ 
+            base.Unlock(); 
         }
 
         #endregion

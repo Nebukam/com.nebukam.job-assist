@@ -13,14 +13,14 @@ namespace Nebukam.JobAssist
         /// Return the current number of children in this compound
         /// </summary>
         int Count { get; }
-        
+
         /// <summary>
         /// Return the child stored at a given index
         /// </summary>
         /// <param name="i"></param>
         /// <returns></returns>
         IProcessor this[int i] { get; }
-                
+
         /// <summary>
         /// Dispose of the compound as well as all of its childrens. 
         /// Recursive.
@@ -64,7 +64,7 @@ namespace Nebukam.JobAssist
 
             if (m_childs.Contains(proc)) { return proc; }
             m_childs.Add(proc);
-            return OnChildAdded(proc, Count-1);
+            return OnChildAdded(proc, Count - 1);
         }
 
         public P Add<P>(P proc)
@@ -80,7 +80,7 @@ namespace Nebukam.JobAssist
 
             if (m_childs.Contains(proc)) { return proc; }
             m_childs.Add(proc);
-            return OnChildAdded(proc, Count-1) as P;
+            return OnChildAdded(proc, Count - 1) as P;
         }
 
         /// <summary>
@@ -167,10 +167,30 @@ namespace Nebukam.JobAssist
             int index = m_childs.IndexOf(proc);
             if (index == -1) { return null; }
 
-            m_childs.RemoveAt(index);            
+            m_childs.RemoveAt(index);
             return OnChildRemoved(proc, index);
 
         }
+
+        /// <summary>
+        /// Removes a processor from the chain
+        /// </summary>
+        /// <param name="proc"></param>
+        public IProcessor RemoveAt(int index)
+        {
+
+#if UNITY_EDITOR
+            if (m_locked)
+            {
+                throw new Exception("You cannot remove processors from a locked chain");
+            }
+#endif
+            IProcessor proc = m_childs[index];
+            m_childs.RemoveAt(index);
+            return OnChildRemoved(proc, index);
+
+        }
+
 
         protected IProcessor OnChildAdded(IProcessor child, int childIndex)
         {
@@ -222,13 +242,13 @@ namespace Nebukam.JobAssist
         /// If you intend to dynamically modify the group childs list, do so in InternalLock(), right before base.InternalLock().
         /// </summary>
         /// <param name="delta"></param>
-        protected abstract void Prepare(float delta);
+        protected virtual void Prepare(float delta) { }
 
         #endregion
 
         #region Complete & Apply
 
-        protected override void OnCompleteBegins()
+        protected sealed override void OnCompleteBegins()
         {
 
             if (m_isEmptyCompound)
@@ -248,21 +268,21 @@ namespace Nebukam.JobAssist
 
         }
 
-        protected abstract void Apply();
+        protected virtual void Apply() { }
 
         #endregion
 
         #region ILockable
 
-        public override void Lock()
+        public override sealed void Lock()
         {
 
             if (m_locked) { return; }
-            
+
             base.Lock();
 
             int numChildren = m_childs.Count;
-            if(numChildren == 0)
+            if (numChildren == 0)
             {
                 m_isEmptyCompound = true;
                 m_emptyCompoundJob = default;
@@ -277,9 +297,10 @@ namespace Nebukam.JobAssist
 
         }
 
-        public override void Unlock()
+        public override sealed void Unlock()
         {
             if (!m_locked) { return; }
+
             base.Unlock();
 
             for (int i = 0, count = m_childs.Count; i < count; i++)
@@ -317,7 +338,7 @@ namespace Nebukam.JobAssist
 
                 if (childCompound != null
                     && childCompound.TryGetFirst(-1, out processor, deep))
-                        return true;
+                    return true;
 
             }
 

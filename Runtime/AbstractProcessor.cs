@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Jobs;
 
@@ -204,11 +205,8 @@ namespace Nebukam.JobAssist
         }
 
         protected abstract void OnCompleteBegins();
-        //m_currentHandle.Complete(); // in Processor & Parallel processor
 
         protected abstract void OnCompleteEnds();
-        // Apply(ref m_currentJob); // in Processor & Parallel processor
-        // protected abstract void Apply(ref T job); // in Processor & Parallel processor
 
         public bool TryComplete()
         {
@@ -239,7 +237,7 @@ namespace Nebukam.JobAssist
             m_locked = true;
         }
 
-        protected abstract void InternalLock();
+        protected virtual void InternalLock() { }
 
         public virtual void Unlock()
         {
@@ -249,7 +247,7 @@ namespace Nebukam.JobAssist
             InternalUnlock();
         }
 
-        protected abstract void InternalUnlock();
+        protected virtual void InternalUnlock() { }
 
         #endregion
 
@@ -277,6 +275,7 @@ namespace Nebukam.JobAssist
 
         protected void Dispose(bool disposing)
         {
+
             if (!disposing) { return; }
 #if UNITY_EDITOR
             m_disposed = true;
@@ -289,9 +288,10 @@ namespace Nebukam.JobAssist
 
             m_procDependency = null;
             m_scheduled = false;
+
         }
 
-        protected abstract void InternalDispose();
+        protected virtual void InternalDispose() { }
 
         public void Dispose()
         {

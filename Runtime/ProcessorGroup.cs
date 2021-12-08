@@ -59,7 +59,7 @@ namespace Nebukam.JobAssist
 
         #region Complete & Apply
 
-        protected override void OnCompleteEnds() { }
+        protected sealed override void OnCompleteEnds() { }
         
         #endregion
 

@@ -17,6 +17,7 @@ namespace Nebukam.JobAssist
     public abstract class ProcessorChain : AbstractProcessorCompound, IProcessorChain
     {
 
+
         #region Scheduling
 
         internal override JobHandle OnScheduled(IProcessor dependsOn = null)
@@ -72,7 +73,7 @@ namespace Nebukam.JobAssist
 
         #region Complete & Apply
 
-        protected override void OnCompleteEnds() { }
+        protected sealed override void OnCompleteEnds() { }
 
         #endregion
 
