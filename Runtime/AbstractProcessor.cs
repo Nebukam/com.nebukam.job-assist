@@ -68,6 +68,12 @@ namespace Nebukam.JobAssist
         /// <returns>Whether the job has been completed or not</returns>
         bool TryComplete();
 
+        /// <summary>
+        /// Schedules and immediately completes the job
+        /// </summary>
+        /// <param name="delta"></param>
+        void Run(float delta = 0f);
+
     }
 
     public abstract class AbstractProcessor : IProcessor
@@ -222,6 +228,11 @@ namespace Nebukam.JobAssist
             }
         }
         
+        public void Run(float delta = 0f)
+        {
+            Schedule(delta);
+            Complete();
+        }
 
         #endregion
 
