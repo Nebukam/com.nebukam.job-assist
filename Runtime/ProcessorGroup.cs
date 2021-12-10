@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Unity.Collections;
+﻿using Unity.Collections;
 using Unity.Jobs;
 using static Nebukam.JobAssist.CollectionsUtils;
 
@@ -19,7 +17,7 @@ namespace Nebukam.JobAssist
     public abstract class ProcessorGroup : AbstractProcessorCompound, IProcessorGroup
     {
 
-        protected NativeArray<JobHandle> m_groupHandles = new NativeArray<JobHandle>(0, Allocator.Persistent);
+        protected NativeArray<JobHandle> m_groupHandles = default;
 
         #region Scheduling
 

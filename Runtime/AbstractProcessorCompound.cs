@@ -36,6 +36,7 @@ namespace Nebukam.JobAssist
         /// <param name="deep"></param>
         /// <returns></returns>
         bool TryGetFirst<P>(int startIndex, out P processor, bool deep = false) where P : class, IProcessor;
+        bool Find<P>(out P processor) where P : class, IProcessor;
 
     }
 
@@ -337,12 +338,50 @@ namespace Nebukam.JobAssist
                 childCompound = child as IProcessorCompound;
 
                 if (childCompound != null
-                    && childCompound.TryGetFirst(-1, out processor, deep))
+                    && childCompound.Find(out processor))
                     return true;
 
             }
 
+            //If local search fails, it goes up one level and restarts.
+            //This is actually super slow so make sure to cache the results of TryGet & Find.
             return TryGetFirstInCompound(out processor, deep);
+
+        }
+
+        /// <summary>
+        /// Goes through all child processors & compounts in reverse order
+        /// until if find a processor with the correct signature.
+        /// </summary>
+        /// <typeparam name="P"></typeparam>
+        /// <param name="processor"></param>
+        /// <returns></returns>
+        public bool Find<P>(out P processor)
+            where P : class, IProcessor
+        {
+
+            processor = null;
+            
+            IProcessor child;
+            IProcessorCompound childCompound;
+
+            for (int i = Count-1; i >= 0; i--)
+            {
+                child = m_childs[i];
+                processor = child as P;
+
+                if (processor != null)
+                    return true;
+
+                childCompound = child as IProcessorCompound;
+
+                if (childCompound != null
+                    && childCompound.Find(out processor))
+                    return true;
+
+            }
+
+            return false;
 
         }
 

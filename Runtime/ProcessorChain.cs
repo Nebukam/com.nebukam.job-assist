@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using Unity.Jobs;
+﻿using Unity.Jobs;
 
 namespace Nebukam.JobAssist
 {
