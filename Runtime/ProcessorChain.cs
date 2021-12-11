@@ -21,16 +21,24 @@ namespace Nebukam.JobAssist
         internal override JobHandle OnScheduled(IProcessor dependsOn = null)
         {
 
-            if (m_isEmptyCompound) { return ScheduleEmpty(dependsOn); }
+            if (m_isCompoundEmpty) { return ScheduleEmpty(dependsOn); }
 
             int count = m_childs.Count;
             IProcessor proc, prevProc = dependsOn;
+            IProcessorCompound comp;
             JobHandle handle = default(JobHandle);
 
             for (int i = 0; i < count; i++)
             {
                 proc = m_childs[i];
                 proc.compoundIndex = i; // Redundant ?
+                comp = proc as IProcessorCompound;
+
+                if (!proc.enabled
+                    || (comp != null && comp.isCompoundEmpty)) 
+                { continue; } // Skip disabled and/or empty
+
+
 
                 handle = prevProc == null 
                     ? proc.Schedule(m_scaledLockedDelta) 
@@ -46,16 +54,23 @@ namespace Nebukam.JobAssist
         internal override JobHandle OnScheduled(JobHandle dependsOn)
         {
 
-            if (m_isEmptyCompound) { return ScheduleEmpty(dependsOn); }
+            if (m_isCompoundEmpty) { return ScheduleEmpty(dependsOn); }
 
             int count = m_childs.Count;
             IProcessor proc, prevProc = null;
+            IProcessorCompound comp;
             JobHandle handle = default(JobHandle);
 
             for (int i = 0; i < count; i++)
             {
                 proc = m_childs[i];
                 proc.compoundIndex = i; // Redundant ?
+
+                comp = proc as IProcessorCompound;
+
+                if (!proc.enabled
+                    || (comp != null && comp.isCompoundEmpty))
+                { continue; } // Skip disabled and/or empty
 
                 handle = prevProc == null 
                     ? proc.Schedule(m_scaledLockedDelta, m_jobHandleDependency) 

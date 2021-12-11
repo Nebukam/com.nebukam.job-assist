@@ -1,6 +1,6 @@
 ﻿using Unity.Collections;
 using Unity.Jobs;
-using static Nebukam.JobAssist.CollectionsUtils;
+using static Nebukam.JobAssist.Extensions;
 
 namespace Nebukam.JobAssist
 {
@@ -23,34 +23,56 @@ namespace Nebukam.JobAssist
 
         internal override void OnPrepare()
         {
-            MakeLength(ref m_groupHandles, Count);
+            MakeLength(ref m_groupHandles, m_enabledChildren);
             base.OnPrepare();
         }
 
         internal override JobHandle OnScheduled(IProcessor dependsOn = null)
         {
 
-            if (m_isEmptyCompound) { return ScheduleEmpty(dependsOn); }
+            if (m_isCompoundEmpty) { return ScheduleEmpty(dependsOn); }
 
             int count = Count;
+            IProcessor proc;
+            IProcessorCompound comp;
 
             for (int i = 0; i < count; i++)
-                m_groupHandles[i] = m_childs[i].Schedule(m_scaledLockedDelta, dependsOn);
+            {
+                proc = m_childs[i];
+                comp = proc as IProcessorCompound;
+                if (!proc.enabled
+                    || (comp != null && comp.isCompoundEmpty))
+                { continue; } // Skip disabled and/or empty
+
+                m_groupHandles[i] = proc.Schedule(m_scaledLockedDelta, dependsOn);
+            }
 
             return JobHandle.CombineDependencies(m_groupHandles);
+
         }
 
         internal override JobHandle OnScheduled(JobHandle dependsOn)
         {
 
-            if (m_isEmptyCompound) { return ScheduleEmpty(dependsOn); }
+            if (m_isCompoundEmpty) { return ScheduleEmpty(dependsOn); }
 
             int count = Count;
+            IProcessor proc;
+            IProcessorCompound comp;
 
             for (int i = 0; i < count; i++)
-                m_groupHandles[i] = m_childs[i].Schedule(m_scaledLockedDelta, dependsOn);
+            {
+                proc = m_childs[i];
+                comp = proc as IProcessorCompound;
+                if (!proc.enabled
+                    || (comp != null && comp.isCompoundEmpty))
+                { continue; } // Skip disabled and/or empty
+
+                m_groupHandles[i] = proc.Schedule(m_scaledLockedDelta, dependsOn);
+            }
 
             return JobHandle.CombineDependencies(m_groupHandles);
+
         }
 
         #endregion
@@ -65,7 +87,7 @@ namespace Nebukam.JobAssist
 
         protected override void InternalDispose()
         {
-            m_groupHandles.Dispose();
+            m_groupHandles.Release();
         }
 
         #endregion

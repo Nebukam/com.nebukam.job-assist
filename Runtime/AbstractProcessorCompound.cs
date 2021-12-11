@@ -14,6 +14,8 @@ namespace Nebukam.JobAssist
         /// </summary>
         int Count { get; }
 
+        bool isCompoundEmpty { get; }
+
         /// <summary>
         /// Return the child stored at a given index
         /// </summary>
@@ -44,7 +46,10 @@ namespace Nebukam.JobAssist
     {
 
         protected EmptyCompound m_emptyCompoundJob;
-        protected bool m_isEmptyCompound = false;
+        protected bool m_isCompoundEmpty = false;
+        public bool isCompoundEmpty{ get{ return m_isCompoundEmpty; } }
+
+        protected int m_enabledChildren = 0;
 
         protected List<IProcessor> m_childs = new List<IProcessor>();
         public int Count { get { return m_childs.Count; } }
@@ -252,17 +257,14 @@ namespace Nebukam.JobAssist
         protected sealed override void OnCompleteBegins()
         {
 
-            if (m_isEmptyCompound)
+            if (m_isCompoundEmpty)
             {
                 m_currentHandle.Complete();
             }
             else
             {
-                int count = m_childs.Count;
-                for (int i = 0; i < count; i++)
-                {
+                for (int i = 0, n = m_childs.Count; i < n; i++)
                     m_childs[i].Complete();
-                }
             }
 
             Apply();
@@ -282,19 +284,31 @@ namespace Nebukam.JobAssist
 
             base.Lock();
 
-            int numChildren = m_childs.Count;
-            if (numChildren == 0)
+            m_enabledChildren = 0;
+
+            for (int i = 0, n = m_childs.Count; i < n; i++)
             {
-                m_isEmptyCompound = true;
+                IProcessor child = m_childs[i];
+                child.Lock();
+
+                if (!child.enabled) { continue; }
+
+                // Skip empty compounds
+                IProcessorCompound childCompound = child as IProcessorCompound;
+                if (childCompound != null && childCompound.isCompoundEmpty) { continue; }
+
+                m_enabledChildren++;
+            }
+
+            if (m_enabledChildren == 0)
+            {
+                m_isCompoundEmpty = true;
                 m_emptyCompoundJob = default;
             }
             else
             {
-                m_isEmptyCompound = false;
+                m_isCompoundEmpty = false;
             }
-
-            for (int i = 0; i < numChildren; i++)
-                m_childs[i].Lock();
 
         }
 
@@ -304,7 +318,7 @@ namespace Nebukam.JobAssist
 
             base.Unlock();
 
-            for (int i = 0, count = m_childs.Count; i < count; i++)
+            for (int i = 0, n = m_childs.Count; i < n; i++)
                 m_childs[i].Unlock();
         }
 
@@ -361,11 +375,11 @@ namespace Nebukam.JobAssist
         {
 
             processor = null;
-            
+
             IProcessor child;
             IProcessorCompound childCompound;
 
-            for (int i = Count-1; i >= 0; i--)
+            for (int i = Count - 1; i >= 0; i--)
             {
                 child = m_childs[i];
                 processor = child as P;

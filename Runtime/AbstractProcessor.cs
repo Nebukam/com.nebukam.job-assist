@@ -8,6 +8,13 @@ namespace Nebukam.JobAssist
     {
 
         /// <summary>
+        /// Whether this processor is enabled or not.
+        /// Note that this property is only accounted for by compounds.
+        /// While disabled a Processor can still be found by TryGetFirst, TryGetFirstInCompount & Find
+        /// </summary>
+        bool enabled { get; set; }
+
+        /// <summary>
         /// User-defined delta multiplier.
         /// </summary>
         float deltaMultiplier { get; set; }
@@ -103,6 +110,20 @@ namespace Nebukam.JobAssist
         protected bool m_scheduled = false;
         public bool scheduled { get { return m_scheduled; } }
         public bool completed { get { return m_scheduled ? m_currentHandle.IsCompleted : false; } }
+
+        protected bool m_enabled = true;
+        public bool enabled {
+            get { return m_enabled; }
+            set
+            {
+                if(m_locked)
+                {
+                    throw new Exception("You cannot change a processor status while it is locked.");
+                }
+
+                m_enabled = value;
+            }
+        }
 
 #if UNITY_EDITOR
         protected bool m_disposed = false;
