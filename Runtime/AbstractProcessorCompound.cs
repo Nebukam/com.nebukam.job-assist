@@ -47,7 +47,7 @@ namespace Nebukam.JobAssist
 
         protected EmptyCompound m_emptyCompoundJob;
         protected bool m_isCompoundEmpty = false;
-        public bool isCompoundEmpty{ get{ return m_isCompoundEmpty; } }
+        public bool isCompoundEmpty { get { return m_isCompoundEmpty; } }
 
         protected int m_enabledChildren = 0;
 
@@ -406,12 +406,13 @@ namespace Nebukam.JobAssist
         public void DisposeAll()
         {
 
-#if UNITY_EDITOR
             if (m_disposed)
             {
-                throw new Exception("DisposeAll() called on already disposed Compound.");
-            }
+                return;
+#if UNITY_EDITOR
+                //throw new Exception("DisposeAll() called on already disposed Compound.");
 #endif
+            }
 
             if (m_scheduled) { m_currentHandle.Complete(); }
 
