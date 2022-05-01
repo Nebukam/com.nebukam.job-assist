@@ -406,13 +406,14 @@ namespace Nebukam.JobAssist
         public void DisposeAll()
         {
 
+#if UNITY_EDITOR
             if (m_disposed)
             {
                 return;
-#if UNITY_EDITOR
+
                 //throw new Exception("DisposeAll() called on already disposed Compound.");
-#endif
             }
+#endif
 
             if (m_scheduled) { m_currentHandle.Complete(); }
 
