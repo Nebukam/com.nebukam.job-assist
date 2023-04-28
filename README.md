@@ -33,4 +33,3 @@ Hence, if you encounter issues, try the following:
 - Check the [Resolver usage for users](https://github.com/mob-sakai/GitDependencyResolverForUnity#usage)
 
 
-
