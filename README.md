@@ -20,8 +20,7 @@ See [Unity's Package Manager : Getting Started](https://docs.unity3d.com/Manual/
 
 ---
 ## Dependencies
-- **Unity.Jobs 0.0.7** [com.unity.jobs]()
-- **Unity.Collections 0.0.9** [com.unity.collections]()
+- **Unity.Collections 1.3.1** [com.unity.collections]()
 
 ---
 ## Installation Troubleshooting

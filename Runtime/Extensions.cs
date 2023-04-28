@@ -30,7 +30,7 @@ namespace Nebukam.JobAssist
         /// <param name="index"></param>
         /// <returns></returns>
         public static T RemoveAt<T>(this ref NativeList<T> @this, int index)
-            where T : struct
+            where T : unmanaged
         {
             int length = @this.Length;
             T val = @this[index];
@@ -52,11 +52,11 @@ namespace Nebukam.JobAssist
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool Contains<TKey, TValue>(this ref NativeMultiHashMap<TKey, TValue> @this, ref TKey key, ref TValue value)
+        public static bool Contains<TKey, TValue>(this ref NativeParallelMultiHashMap<TKey, TValue> @this, ref TKey key, ref TValue value)
             where TKey : struct, IEquatable<TKey>
             where TValue : struct, IEquatable<TValue>
         {
-            NativeMultiHashMapIterator<TKey> it;
+            NativeParallelMultiHashMapIterator<TKey> it;
             TValue result;
             if (@this.TryGetFirstValue(key, out result, out it))
             {
@@ -78,14 +78,14 @@ namespace Nebukam.JobAssist
         /// <param name="key"></param>
         /// <param name="value"></param>
         /// <returns></returns>
-        public static bool Remove<TKey, TValue>(this ref NativeMultiHashMap<TKey, TValue> @this, ref TKey key, ref TValue value)
-            where TKey : struct, IEquatable<TKey>
-            where TValue : struct, IEquatable<TValue>
+        public static bool Remove<TKey, TValue>(this ref NativeParallelMultiHashMap<TKey, TValue> @this, ref TKey key, ref TValue value)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : unmanaged, IEquatable<TValue>
         {
             if (!@this.Contains(ref key, ref value)) { return false; }
 
             NativeList<TValue> values = new NativeList<TValue>(5, Allocator.Temp);
-            NativeMultiHashMapIterator<TKey> it;
+            NativeParallelMultiHashMapIterator<TKey> it;
             TValue result;
             if (@this.TryGetFirstValue(key, out result, out it))
             {
@@ -104,7 +104,7 @@ namespace Nebukam.JobAssist
         }
 
         public static bool Contains<TValue>(this ref NativeList<TValue> @this, ref TValue value)
-            where TValue : struct, IEquatable<TValue>
+            where TValue : unmanaged, IEquatable<TValue>
         {
             for (int i = 0, count = @this.Length; i < count; i++)
                 if (@this[i].Equals(value)) { return true; }
@@ -112,7 +112,7 @@ namespace Nebukam.JobAssist
         }
 
         public static bool AddOnce<TValue>(this ref NativeList<TValue> @this, ref TValue value)
-            where TValue : struct, IEquatable<TValue>
+            where TValue : unmanaged, IEquatable<TValue>
         {
             if (@this.Contains(ref value)) { return false; }
             @this.Add(value);
@@ -120,7 +120,7 @@ namespace Nebukam.JobAssist
         }
 
         public static TValue Pop<TValue>(this ref NativeList<TValue> @this)
-            where TValue : struct
+            where TValue : unmanaged
         {
             int index = @this.Length - 1;
             TValue result = @this[index];
@@ -129,7 +129,7 @@ namespace Nebukam.JobAssist
         }
 
         public static TValue Shift<TValue>(this ref NativeList<TValue> @this)
-            where TValue : struct
+            where TValue : unmanaged
         {
             TValue result = @this[0];
             @this.RemoveAt(0);
@@ -147,15 +147,15 @@ namespace Nebukam.JobAssist
         /// <param name="alloc"></param>
         /// <param name="capacity"></param>
         /// <returns></returns>
-        public static NativeList<TValue> GetValues<TKey, TValue>(this ref NativeMultiHashMap<TKey, TValue> @this, ref TKey key, Allocator alloc, int capacity = 5)
-            where TKey : struct, IEquatable<TKey>
-            where TValue : struct, IEquatable<TValue>
+        public static NativeList<TValue> GetValues<TKey, TValue>(this ref NativeParallelMultiHashMap<TKey, TValue> @this, ref TKey key, Allocator alloc, int capacity = 5)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : unmanaged, IEquatable<TValue>
         {
 
             NativeList<TValue> list = new NativeList<TValue>(capacity, alloc);
 
             NativeList<TValue> values = new NativeList<TValue>(5, Allocator.Temp);
-            NativeMultiHashMapIterator<TKey> it;
+            NativeParallelMultiHashMapIterator<TKey> it;
 
             TValue result;
             if (@this.TryGetFirstValue(key, out result, out it))
@@ -180,13 +180,13 @@ namespace Nebukam.JobAssist
         /// <param name="key"></param>
         /// <param name="list"></param>
         /// <returns></returns>
-        public static int PushValues<TKey, TValue>(this ref NativeMultiHashMap<TKey, TValue> @this, ref TKey key, ref NativeList<TValue> list)
-            where TKey : struct, IEquatable<TKey>
-            where TValue : struct, IEquatable<TValue>
+        public static int PushValues<TKey, TValue>(this ref NativeParallelMultiHashMap<TKey, TValue> @this, ref TKey key, ref NativeList<TValue> list)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : unmanaged, IEquatable<TValue>
         {
 
             NativeList<TValue> values = new NativeList<TValue>(5, Allocator.Temp);
-            NativeMultiHashMapIterator<TKey> it;
+            NativeParallelMultiHashMapIterator<TKey> it;
 
             int resultCount = 0;
             TValue result;
@@ -212,14 +212,14 @@ namespace Nebukam.JobAssist
         /// <param name="this"></param>
         /// <param name="alloc"></param>
         /// <returns></returns>
-        public static NativeMultiHashMap<TKey, TValue> Clone<TKey, TValue>(this ref NativeMultiHashMap<TKey, TValue> @this, Allocator alloc)
+        public static NativeParallelMultiHashMap<TKey, TValue> Clone<TKey, TValue>(this ref NativeParallelMultiHashMap<TKey, TValue> @this, Allocator alloc)
             where TKey : struct, IEquatable<TKey>
             where TValue : struct
         {
 
-            NativeMultiHashMap<TKey, TValue> cloneHashMap = new NativeMultiHashMap<TKey, TValue>(@this.Count(), alloc);
+            NativeParallelMultiHashMap<TKey, TValue> cloneHashMap = new NativeParallelMultiHashMap<TKey, TValue>(@this.Count(), alloc);
 
-            NativeMultiHashMapIterator<TKey> it;
+            NativeParallelMultiHashMapIterator<TKey> it;
             NativeArray<TKey> keys = @this.GetKeyArray(Allocator.Temp);
             TKey key;
             TValue value;
@@ -251,7 +251,7 @@ namespace Nebukam.JobAssist
         /// <param name="alloc"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
         public static bool MakeLength<T>(ref NativeArray<T> nativeArray, int length, Allocator alloc = Allocator.Persistent)
-            where T : struct
+            where T : unmanaged
         {
             if (!nativeArray.IsCreated
                 || nativeArray.Length != length)
@@ -273,15 +273,15 @@ namespace Nebukam.JobAssist
         /// <param name="length"></param>
         /// <param name="alloc"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
-        public static bool MakeLength<TKey, TValue>(ref NativeHashMap<TKey, TValue> nativeHashMap, int length, Allocator alloc = Allocator.Persistent)
-            where TKey : struct, IEquatable<TKey>
-            where TValue : struct
+        public static bool MakeLength<TKey, TValue>(ref NativeParallelHashMap<TKey, TValue> nativeHashMap, int length, Allocator alloc = Allocator.Persistent)
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : unmanaged
         {
             if (!nativeHashMap.IsCreated
                 || nativeHashMap.Count() != length)
             {
                 nativeHashMap.Release();
-                nativeHashMap = new NativeHashMap<TKey, TValue>(length, alloc);
+                nativeHashMap = new NativeParallelHashMap<TKey, TValue>(length, alloc);
                 return false;
             }
 
@@ -320,7 +320,7 @@ namespace Nebukam.JobAssist
         /// <param name="alloc"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
         public static bool EnsureMinLength<T>(ref NativeArray<T> nativeArray, int length, int padding = 0, Allocator alloc = Allocator.Persistent)
-            where T : struct
+            where T : unmanaged
         {
             if (!nativeArray.IsCreated
                 || nativeArray.Length < length)
@@ -343,7 +343,7 @@ namespace Nebukam.JobAssist
         /// <param name="dest"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
         public static bool Copy<T>(T[] src, ref NativeArray<T> dest, Allocator alloc = Allocator.Persistent)
-            where T : struct
+            where T : unmanaged
         {
             int count = src.Length;
             bool resized = MakeLength<T>(ref dest, src.Length, alloc);
@@ -360,7 +360,7 @@ namespace Nebukam.JobAssist
         /// <param name="dest"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
         public static bool Copy<T>(NativeArray<T> src, ref T[] dest)
-            where T : struct
+            where T : unmanaged
         {
             int count = src.Length;
             bool resized = dest.Length != count;
@@ -378,7 +378,7 @@ namespace Nebukam.JobAssist
         /// <param name="dest"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
         public static bool Copy<T>(NativeArray<T> src, ref NativeArray<T> dest, Allocator alloc = Allocator.Persistent)
-            where T : struct
+            where T : unmanaged
         {
             int count = src.Length;
             bool resized = !dest.IsCreated || dest.Length != count;
@@ -400,7 +400,7 @@ namespace Nebukam.JobAssist
         /// <param name="dest"></param>
         /// <returns>true if the size is unchanged, false if the NativeArray has been updated</returns>
         public static bool Copy<T>(List<T> src, ref NativeArray<T> dest, Allocator alloc = Allocator.Persistent)
-            where T : struct
+            where T : unmanaged
         {
             int count = src.Count;
             bool resized = MakeLength<T>(ref dest, src.Count, alloc);
@@ -419,7 +419,7 @@ namespace Nebukam.JobAssist
         /// <param name="src"></param>
         /// <param name="dest"></param>
         public static void Copy<T>(List<T> src, ref NativeList<T> dest, Allocator alloc = Allocator.Persistent)
-            where T : struct
+            where T : unmanaged
         {
             int count = src.Count;
 
@@ -433,13 +433,13 @@ namespace Nebukam.JobAssist
 
         }
 
-        public static void Release<T>(this NativeArray<T> @this) where T : struct { if (@this.IsCreated) { @this.Dispose(); } }
-        public static void Release<T>(this NativeList<T> @this) where T : struct { if (@this.IsCreated) { @this.Dispose(); } }
-        public static void Release<TKey, TValue>(this NativeHashMap<TKey, TValue> @this) where TKey : struct, IEquatable<TKey> where TValue : struct { if (@this.IsCreated) { @this.Dispose(); } }
-        public static void Release<TKey, TValue>(this NativeMultiHashMap<TKey, TValue> @this) where TKey : struct, IEquatable<TKey> where TValue : struct { if (@this.IsCreated) { @this.Dispose(); } }
+        public static void Release<T>(this NativeArray<T> @this) where T : unmanaged { if (@this.IsCreated) { @this.Dispose(); } }
+        public static void Release<T>(this NativeList<T> @this) where T : unmanaged { if (@this.IsCreated) { @this.Dispose(); } }
+        public static void Release<TKey, TValue>(this NativeParallelHashMap<TKey, TValue> @this) where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged { if (@this.IsCreated) { @this.Dispose(); } }
+        public static void Release<TKey, TValue>(this NativeParallelMultiHashMap<TKey, TValue> @this) where TKey : unmanaged, IEquatable<TKey> where TValue : unmanaged { if (@this.IsCreated) { @this.Dispose(); } }
 
         public static void FloodArray<T>(NativeArray<T> array, T value)
-            where T : struct
+            where T : unmanaged
         {
             new FloodArray<T> { array = array, value = value }.Run(array.Length);
         }
@@ -448,7 +448,7 @@ namespace Nebukam.JobAssist
 
     [BurstCompile]
     internal struct FloodArray<T> : Unity.Jobs.IJobParallelFor
-        where T : struct
+        where T : unmanaged
     {
         public NativeArray<T> array;
         public T value;
