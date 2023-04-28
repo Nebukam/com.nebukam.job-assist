@@ -21,6 +21,7 @@ See [Unity's Package Manager : Getting Started](https://docs.unity3d.com/Manual/
 ---
 ## Dependencies
 - **Unity.Collections 1.3.1** [com.unity.collections]()
+- **Unity.Jobs 0.51.0** [com.unity.jobs]()
 
 ---
 ## Installation Troubleshooting
@@ -30,5 +31,6 @@ Hence, if you encounter issues, try the following:
 - In the project explorer, do a ```Reimport All``` on the **Packages** folder (located at the same level as **Assets** & **Favorites**). This should do the trick.
 - Delete Library/ScriptAssemblies from you project, then ```Reimport All```.
 - Check the [Resolver usage for users](https://github.com/mob-sakai/GitDependencyResolverForUnity#usage)
+
 
 
