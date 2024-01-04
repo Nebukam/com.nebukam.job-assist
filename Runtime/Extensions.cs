@@ -53,8 +53,8 @@ namespace Nebukam.JobAssist
         /// <param name="value"></param>
         /// <returns></returns>
         public static bool Contains<TKey, TValue>(this ref NativeParallelMultiHashMap<TKey, TValue> @this, ref TKey key, ref TValue value)
-            where TKey : struct, IEquatable<TKey>
-            where TValue : struct, IEquatable<TValue>
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : unmanaged, IEquatable<TValue>
         {
             NativeParallelMultiHashMapIterator<TKey> it;
             TValue result;
@@ -213,8 +213,8 @@ namespace Nebukam.JobAssist
         /// <param name="alloc"></param>
         /// <returns></returns>
         public static NativeParallelMultiHashMap<TKey, TValue> Clone<TKey, TValue>(this ref NativeParallelMultiHashMap<TKey, TValue> @this, Allocator alloc)
-            where TKey : struct, IEquatable<TKey>
-            where TValue : struct
+            where TKey : unmanaged, IEquatable<TKey>
+            where TValue : unmanaged
         {
 
             NativeParallelMultiHashMap<TKey, TValue> cloneHashMap = new NativeParallelMultiHashMap<TKey, TValue>(@this.Count(), alloc);
